@@ -1,0 +1,5 @@
+# Tested environment (verify compatibility when loading joblib across environments)
+scikit-learn==1.8.0
+numpy==2.3.5
+pandas==2.2.3
+joblib==1.5.3

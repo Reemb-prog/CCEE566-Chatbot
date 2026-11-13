@@ -1,0 +1,95 @@
+{
+  "name": "RHU Claude chatbot harness",
+  "year": "2026-2027",
+  "assets": [
+    {
+      "path": "inputs/catalog/RHU_Undegraduate_Catalog_2026-2027.pdf",
+      "size_bytes": 5192953,
+      "sha256": "3209d9d8c790a29e19b12ca2a796cb63f904d65d975553a60cd11bd35aeb468a"
+    },
+    {
+      "path": "inputs/classifier/RHU_Question_Classification_V31_Final.ipynb",
+      "size_bytes": 82322,
+      "sha256": "cd04b3cd38ae70dc71912c45f0ce10598899e8a6dc360d3c8c90433b22ed5fb2"
+    },
+    {
+      "path": "inputs/classifier/documented_trained_intent_taxonomy.csv",
+      "size_bytes": 3589,
+      "sha256": "52753fcb58c452883f69552bc253e4f4aa0c9c2866ec9840a1d006ab3e8a6ab5"
+    },
+    {
+      "path": "inputs/classifier/requirements_v31.txt",
+      "size_bytes": 145,
+      "sha256": "077bb0a172ab248c4ded2582b91c6f8123ac98d15eedd8c9d3d1cebde90abfc5"
+    },
+    {
+      "path": "inputs/classifier/rhu_classifier_api.py",
+      "size_bytes": 4591,
+      "sha256": "851dad6cf1bb96446169daabe4ae6c6133ec5af963507f3f1c4e672b1c2dce04"
+    },
+    {
+      "path": "inputs/classifier/rhu_classifier_v31.joblib",
+      "size_bytes": 1484862,
+      "sha256": "e43ba3080e580923216c841cf3738090356f58497a00d250e08983c02b11e966"
+    },
+    {
+      "path": "inputs/knowledge/RETRIEVAL_PASSAGES.csv",
+      "size_bytes": 1460183,
+      "sha256": "ff4666840b9f2d490adab23af1f61833ef4b0be47d0a756465e322bff57697e7"
+    },
+    {
+      "path": "inputs/knowledge/REVIEW_GOLD_TEST.csv",
+      "size_bytes": 1809,
+      "sha256": "e346d49b82cafd1b74850aa7bf8c0ecc9e8f6c4b11acfd3268f9bd096afe7b01"
+    },
+    {
+      "path": "inputs/knowledge/RHU_CATALOG_FULL_TEXT_BY_PAGE.csv",
+      "size_bytes": 979727,
+      "sha256": "1d7ecae6f0babd30d894dbd39217f55aab5d93b665ec6f0cab0fe28ac5a944e9"
+    },
+    {
+      "path": "inputs/knowledge/RHU_COURSE_DESCRIPTIONS.csv",
+      "size_bytes": 461748,
+      "sha256": "05dd8c6d20f912f1e7996c78743ac944af98cb79e2da971d144c168f2f541984"
+    },
+    {
+      "path": "inputs/knowledge/RHU_LABEL_TAXONOMY.csv",
+      "size_bytes": 9809,
+      "sha256": "e921bb33d9f7cd1d3ec8a7162426f0025f7465c59e8739cedd7c0347fac808ec"
+    },
+    {
+      "path": "inputs/knowledge/RHU_PROGRAM_STUDY_PLAN_ROWS.csv",
+      "size_bytes": 141660,
+      "sha256": "2cf7c82ed7780e29a2be420de81935adfb67f808a61fe0af3631e2d3a05feb8b"
+    },
+    {
+      "path": "inputs/reference_archive/RHU_QA_Train_Test_Final_2026_2027.zip",
+      "size_bytes": 2533279,
+      "sha256": "3b5e020688d4b5a16b65126e0e48344b4f65db88203f4b30738e41853b05b262"
+    },
+    {
+      "path": "inputs/references/SOURCE_DATASET_README.md",
+      "size_bytes": 4159,
+      "sha256": "a5c583a7e178e40a14bcdd27ebc9980058be7543ada8e84b087b4877ffb76402"
+    },
+    {
+      "path": "inputs/references/V31_Review_and_QA_Handoff.md",
+      "size_bytes": 8358,
+      "sha256": "ab91e5bd0420b706bb6b523be88d90f089489c5cfb24445ac384a3bb18c69354"
+    },
+    {
+      "path": "inputs/references/data_quality_checks.csv",
+      "size_bytes": 508,
+      "sha256": "61bc6e712911b5c3bcd5979bbfe4137fe82ab72ecc433033768c0b9443e7d8cc"
+    },
+    {
+      "path": "inputs/references/dataset_manifest.json",
+      "size_bytes": 2133,
+      "sha256": "4d1c225a2ff6eb606d69df12739487885a2e4681133834dc2accd1f68dd92e28"
+    }
+  ],
+  "notes": [
+    "All hashes are source assets; app output files may change.",
+    "External RHU PDF URLs are citations, not live QA sources."
+  ]
+}

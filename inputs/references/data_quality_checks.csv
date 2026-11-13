@@ -1,0 +1,11 @@
+Check,Count,Meaning
+Blank required cells,0,Blocker if > 0
+Duplicate question IDs,0,Blocker if > 0
+Duplicate normalized question texts,0,Review if > 0
+Same fact across splits,0,Blocker if > 0
+Same group across splits,0,Blocker if > 0
+Same normalized question across splits,0,Blocker if > 0
+Same exact answer across splits,0,Review if > 0
+Invalid source page range,0,Review if > 0
+Excluded reviewed fact IDs in QA,0,Blocker if > 0
+Evaluation intent labels absent from train,26,Intent classification limitation

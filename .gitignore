@@ -1,0 +1,13 @@
+.venv/
+__pycache__/
+.pytest_cache/
+*.pyc
+artifacts/
+.claude/settings.local.json
+.env
+.env.*
+# Educational source files should not be committed to public repositories.
+inputs/catalog/
+inputs/reference_archive/
+inputs/knowledge/
+inputs/classifier/*.joblib

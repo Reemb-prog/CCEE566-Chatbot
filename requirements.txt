@@ -1,0 +1,8 @@
+# Tested on Python 3.12.6 (Windows 11). The V3.1 classifier joblib was created with
+# scikit-learn 1.8.0 / numpy 2.3.5 / pandas 2.2.3 / joblib 1.5.3 -- keep these exact pins.
+scikit-learn==1.8.0
+numpy==2.3.5
+pandas==2.2.3
+joblib==1.5.3
+streamlit==1.67.0
+pytest==9.2.0

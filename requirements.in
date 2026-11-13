@@ -1,0 +1,9 @@
+# Guidance for Claude: generate a final requirements.txt after validating compatibility.
+# The pre-trained Joblib classifier was created with these exact versions:
+scikit-learn==1.8.0
+numpy==2.3.5
+pandas==2.2.3
+joblib==1.5.3
+# Add stable Streamlit 1.x and pytest, plus only truly necessary packages.
+streamlit>=1.40,<2
+pytest>=8,<10
