@@ -10,6 +10,7 @@ from pathlib import Path
 
 from . import nlp, qa
 from .data import CatalogData
+from .normalize import Normalizer, interpretation_note, nice_title
 from .retrieval import CATEGORY_BOOST, CODE_BOOST, PassageIndex
 
 MAX_QUESTION_CHARS = 500
@@ -42,6 +43,9 @@ class RHUChatPipeline:
             if t and t != "nan":
                 titles.setdefault(t, set()).add(code)
         self.titles = titles
+        texts = (list(data.passages["passage_text"]) + list(data.courses["course_title"].fillna(""))
+                 + list(data.courses["description"].fillna("")))
+        self.normalizer = Normalizer(texts, titles, data.course_prefixes)
 
     @classmethod
     def from_project_root(cls, root: Path, rebuild_index: bool = False) -> "RHUChatPipeline":
@@ -97,7 +101,10 @@ class RHUChatPipeline:
             trace.update({
                 "tokenization": {"retrieval_tokens": [], "raw_tokens": [], "course_codes": [],
                                  "unknown_codes": [], "requested_field": None, "program": None,
-                                 "semester_clues": {}, "scope_flags": [], "skipped": True},
+                                 "semester_clues": {}, "scope_flags": [], "skipped": True,
+                                 "normalization": {"original": question, "normalized": question,
+                                                   "changed": False, "changes": [],
+                                                   "ambiguous_acronyms": []}},
                 "classification": {"category_hint": None, "intent_hint": None, "raw_category": None,
                                    "raw_intent": None, "routing_status": "invalid_input",
                                    "review_needed": True, "skipped": True},
@@ -112,39 +119,47 @@ class RHUChatPipeline:
             return {"question": question, "status": "invalid_input", "answer": msg, "citations": [],
                     "suggestions": [], "trace": trace}
 
-        # 2. tokenization & extraction (on the ORIGINAL question) -----------
+        # 2. normalization, tokenization & extraction -----------------------
+        # Course codes come from the ORIGINAL question (the normalizer never edits them);
+        # scope checks run on both forms; everything else uses the normalized text.
         t = time.perf_counter()
+        norm = self.normalizer.normalize(stripped)
+        q = norm["normalized"]
         codes, unknown = nlp.extract_course_codes(stripped, self.data.course_prefixes)
-        field = nlp.requested_field(stripped)
-        flags = nlp.scope_flags(stripped)
-        retrieval_tokens = self.index.tokens(stripped)
+        field = nlp.requested_field(q)
+        flags = list(dict.fromkeys(nlp.scope_flags(stripped) + nlp.scope_flags(q)))
+        retrieval_tokens = self.index.tokens(q)
         title_match = None
         if not codes and not unknown and field in {"credits", "prerequisite", "corequisite", "description"}:
-            mt, mcodes, ratio = nlp.match_course_title(stripped, self.titles)
+            mt, mcodes, ratio = nlp.match_course_title(q, self.titles)
             if mt:
                 title_match = {"title": mt, "codes": sorted(mcodes), "similarity_ratio": round(ratio, 3)}
-        tok = {"retrieval_tokens": retrieval_tokens, "raw_tokens": self.index.raw_tokens(stripped),
+        tok = {"normalization": norm,
+               "retrieval_tokens": retrieval_tokens, "raw_tokens": self.index.raw_tokens(q),
                "course_codes": codes, "unknown_codes": unknown, "requested_field": field,
-               "program": nlp.detect_program(stripped), "semester_clues": nlp.detect_semester(stripped),
+               "program": nlp.detect_program(q), "semester_clues": nlp.detect_semester(q),
                "scope_flags": flags, "title_match": title_match,
-               "tokenizer": "sklearn TfidfVectorizer analyzer (word unigrams shown; stop words removed)"}
+               "tokenizer": "sklearn TfidfVectorizer analyzer on the normalized question "
+                            "(word unigrams shown; stop words removed)"}
         trace["tokenization"] = tok
         timings["tokenization"] = _ms(t)
 
         # 3. V3.1 classification (soft hints) ------------------------------
         t = time.perf_counter()
-        cls_info = self.classify(stripped)
+        cls_info = self.classify(q)
+        cls_info["input_text"] = q
         trace["classification"] = cls_info
         timings["classification"] = _ms(t)
 
         # 4. retrieval over the FULL passage index -------------------------
         t = time.perf_counter()
-        candidates = self.index.search(stripped, cls_info.get("category_hint"), codes, k=8)
+        candidates = self.index.search(q, cls_info.get("category_hint"), codes, k=8)
         timings["retrieval"] = _ms(t)
 
         # 5. grounding ------------------------------------------------------
         t = time.perf_counter()
-        res = self._ground(stripped, codes, unknown, field, flags, title_match, candidates, retrieval_tokens)
+        res = self._ground(q, codes, unknown, field, flags, title_match, candidates, retrieval_tokens,
+                           norm["ambiguous_acronyms"])
         timings["grounding"] = _ms(t)
 
         trace["retrieval"] = {
@@ -173,6 +188,7 @@ class RHUChatPipeline:
             status, answer = "insufficient_evidence", qa.FALLBACK["low_relevance"]
         if status != "answered":
             citations = []
+        answer = interpretation_note(norm) + answer
         timings["answer"] = _ms(t)
         timings["total"] = _ms(t_total)
         trace["answer"] = {"status": status, "n_citations": len(citations),
@@ -182,7 +198,8 @@ class RHUChatPipeline:
                 "suggestions": res["suggestions"], "trace": trace}
 
     # ------------------------------------------------------------------
-    def _ground(self, q, codes, unknown, field, flags, title_match, candidates, tokens) -> dict:
+    def _ground(self, q, codes, unknown, field, flags, title_match, candidates, tokens,
+                ambiguous_acronyms=()) -> dict:
         # Scope rules first: they decline rather than attach unrelated citations.
         for reason in ("personal_record_request", "outside_catalog_topic", "live_or_time_sensitive"):
             if reason in flags:
@@ -244,9 +261,20 @@ class RHUChatPipeline:
                     return res
             else:
                 return qa._result("needs_clarification",
-                                  f"Several courses are titled “{title_match['title']}”: "
+                                  f"Several courses are titled “{nice_title(title_match['title'])}”: "
                                   f"{', '.join(title_match['codes'])}. Which course code do you mean?",
                                   "needs_clarification", strategy="course_title_match")
+
+        # An acronym that fits several catalog course titles: ask, never guess.
+        if (ambiguous_acronyms and field in {"credits", "prerequisite", "corequisite", "description"}
+                and not re.search(r"\b(program|minor|major|degree|department|college|faculty)\b", q, re.I)):
+            amb = ambiguous_acronyms[0]
+            opts = "; ".join(f"{nice_title(o['title'])} ({', '.join(o['codes'])})" for o in amb["options"][:6])
+            return qa._result("needs_clarification",
+                              f"“{amb['acronym']}” matches the initials of several catalog courses: {opts}. "
+                              "Which one do you mean? You can type the course code.",
+                              "needs_clarification", notes=["Acronym matched several course titles; none chosen."],
+                              strategy="course_acronym_check")
 
         if nlp.PLAN_RE.search(q) and not re.search(r"\bcredits? (?:are )?(?:needed|required) to graduate|\bgraduat", q, re.I):
             res = qa.answer_study_plan(self.data, q)

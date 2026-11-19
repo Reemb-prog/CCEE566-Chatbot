@@ -135,6 +135,19 @@ if insp_col is not None:
                 if tok.get("skipped"):
                     st.caption("Skipped: invalid input.")
                 else:
+                    norm = tok.get("normalization") or {}
+                    st.markdown("**Normalized question** (student shorthand, course acronyms from catalog "
+                                "titles, spelling checked against catalog words; course codes untouched):")
+                    st.code(norm.get("normalized") or inp["question"], language=None)
+                    if norm.get("changes"):
+                        st.dataframe(pd.DataFrame(
+                            [(c["from"], c["to"], c["rule"], c.get("detail", "")) for c in norm["changes"]],
+                            columns=["Typed", "Read as", "Rule", "Why"]), hide_index=True, width="stretch")
+                    else:
+                        st.caption("No rewrites were needed.")
+                    for amb in norm.get("ambiguous_acronyms", []):
+                        st.caption(f"Ambiguous acronym {amb['acronym']}: "
+                                   + "; ".join(o["title"] for o in amb["options"][:6]) + " (not expanded).")
                     st.markdown("**Retrieval tokens** (scikit-learn TF-IDF analyzer, stop words removed — "
                                 "word features, not transformer tokens):")
                     st.code(" · ".join(tok["retrieval_tokens"]) or "(no usable tokens)", language=None)

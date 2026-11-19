@@ -9,3 +9,4 @@
 | 4 | Pipeline trace: `pipeline.py` wraps V3.1 API + retrieval + grounding, real timings | done. JSON-safe trace, `time.perf_counter` per stage, no confidence/probability fields |
 | 5 | UI: `app.py` chat, process strip, inspector, evidence cards | done. Checked in a browser at 1400×900 and 375×812 |
 | 6 | Verify: pytest, smoke_app, browser check, final report | done. 23/23 tests, smoke PASS, see FINAL_IMPLEMENTATION_REPORT.md |
+| 7 | Informal wording (2026-11-19): `normalize.py` shorthand, title acronyms, catalog-vocabulary spelling | done. 33/33 tests, smoke PASS, seed answers unchanged, browser checked |

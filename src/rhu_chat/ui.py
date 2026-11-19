@@ -78,9 +78,11 @@ def strip_html_stages(result: dict) -> str:
     gr = tr["grounding"]
     skipped = not tr["input"]["valid"]
     n_struct = len(ret.get("structured_matches", []))
+    n_fix = len((tok.get("normalization") or {}).get("changes", []))
     stages = [
         ("1 · Input", "valid" if tr["input"]["valid"] else "invalid", t.get("input", 0), "flag" if skipped else ""),
-        ("2 · Tokens", f"{len(tok['retrieval_tokens'])} tokens · {len(tok['course_codes'])} code(s)",
+        ("2 · Tokens", f"{len(tok['retrieval_tokens'])} tokens · {len(tok['course_codes'])} code(s)"
+                       + (f" · {n_fix} rewrite(s)" if n_fix else ""),
          t.get("tokenization", 0), "skip" if skipped else ""),
         ("3 · V3.1 hints", str(cls.get("category_hint") or "—"), t.get("classification", 0),
          "skip" if skipped else ("flag" if cls.get("review_needed") else "")),
