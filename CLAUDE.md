@@ -11,7 +11,7 @@ You are implementing **RHU Catalog Explorer**, a SMALL LOCAL Streamlit NLP teach
 
 ## Hard constraints
 
-- Use Python + Streamlit + pandas + scikit-learn + joblib + stdlib. No paid APIs, external LLM, embeddings service, LangChain, vector DB, database server, authentication, Docker, React, background jobs, user accounts, speech or ABSA for this phase.
+- Use Python + Streamlit + pandas + scikit-learn + joblib + stdlib. No paid APIs, external LLM, embeddings service, LangChain, vector DB, database server, authentication, Docker, React, background jobs, user accounts or speech for this phase. ABSA/feedback sentiment is in scope **only** as the separate feedback module in `docs/FEEDBACK_ABSA_PLAN.md` (classical scikit-learn, data in `inputs/feedback/`); it never supplies catalog evidence. The 40 human sentences are never training data; the team unsealed them on 2026-11-21 to fix errors, so their scores are development numbers (sealed result: `eval/feedback_results_sealed_v1.md`). Never commit per-sentence survey text (repository is public).
 - Keep to a readable ~5 to 8 Python modules and simple tests. Build the UI in `app.py`, core logic in `src/rhu_chat/`.
 - Use bundled original V3.1 `rhu_classifier_api.py`, `rhu_classifier_v31.joblib` and `make_qa_request()`. Do not silently modify, retrain, overwrite or convert its predictions into hard filtering. V3.1 is a **soft routing hint**, not a factual authority.
 - Prefer the extracted tables bundled under `inputs/knowledge/`; use PDF for evidence inspection and source links. No re-extracting 429 PDF pages on each question.

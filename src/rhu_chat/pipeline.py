@@ -32,9 +32,11 @@ def _ms(t0: float) -> float:
 
 class RHUChatPipeline:
     def __init__(self, root: Path, data: CatalogData, index: PassageIndex, index_meta: dict,
-                 clf_api, clf_bundle, clf_error: str | None = None):
+                 clf_api, clf_bundle, clf_error: str | None = None, feedback=None,
+                 feedback_error: str | None = None):
         self.root, self.data, self.index, self.index_meta = root, data, index, index_meta
         self.clf_api, self.clf_bundle, self.clf_error = clf_api, clf_bundle, clf_error
+        self.feedback, self.feedback_error = feedback, feedback_error  # optional separate module
         self.known_codes = set(data.courses["course_code"]) | set(data.plans["course_code"])
         titles: dict[str, set[str]] = {}
         for code, title in zip(data.courses["course_code"], data.courses["course_title"]):
@@ -60,7 +62,13 @@ class RHUChatPipeline:
             bundle = api.load_bundle(str(root / CLASSIFIER_DIR / "rhu_classifier_v31.joblib"))
         except Exception as exc:  # keep the app usable; retrieval never depends on the classifier
             err = f"{type(exc).__name__}: {exc}"
-        return cls(root, data, index, meta, api, bundle, err)
+        fb = fb_err = None
+        try:  # the feedback module is optional: catalog QA works without it
+            from .feedback import DEFAULT_MODEL, FeedbackAnalyzer
+            fb = FeedbackAnalyzer.load(root / DEFAULT_MODEL)
+        except Exception as exc:
+            fb_err = f"{type(exc).__name__}: {exc}"
+        return cls(root, data, index, meta, api, bundle, err, fb, fb_err)
 
     # ------------------------------------------------------------------
     def classify(self, question: str) -> dict:
@@ -151,6 +159,21 @@ class RHUChatPipeline:
         trace["classification"] = cls_info
         timings["classification"] = _ms(t)
 
+        # 3b. feedback routing: an opinion is not a catalog question ----------
+        if self.feedback is not None:
+            t = time.perf_counter()
+            from .feedback import feedback_route
+            fb = self.feedback.analyze(stripped)
+            route = feedback_route(stripped, fb, codes, field)
+            if route["is_feedback"] and "instruction_override_attempt" in flags:
+                route = {"is_feedback": False, "reasons": ["instruction-override wording keeps the catalog path"]}
+            trace["feedback_route"] = {**route, "overall": fb["overall"], "aspects": fb["aspects"],
+                                       "note": "Feedback is analysed by the separate feedback module and is "
+                                               "never used as catalog evidence."}
+            timings["feedback_check"] = _ms(t)
+            if route["is_feedback"]:
+                return self._feedback_reply(question, trace, timings, t_total, fb)
+
         # 4. retrieval over the FULL passage index -------------------------
         t = time.perf_counter()
         candidates = self.index.search(q, cls_info.get("category_hint"), codes, k=8)
@@ -196,6 +219,28 @@ class RHUChatPipeline:
         trace["timings_ms"] = timings
         return {"question": question, "status": status, "answer": answer, "citations": citations,
                 "suggestions": res["suggestions"], "trace": trace}
+
+    def _feedback_reply(self, question: str, trace: dict, timings: dict, t_total: float, fb: dict) -> dict:
+        """Opinion detected: do not search the catalog; point to the Feedback analyser instead."""
+        timings["retrieval"] = timings["grounding"] = 0.0
+        trace["retrieval"] = {"candidates": [], "structured_matches": [], "skipped": True,
+                              "skip_reason": "feedback, not a catalog question",
+                              "index": {"n_passages": self.index_meta.get("n_passages"),
+                                        "n_features": self.index_meta.get("n_features"),
+                                        "cache": self.index_meta.get("cache")}}
+        trace["grounding"] = {"decision": "feedback_detected", "evidence_ids": [], "support": [],
+                              "notes": trace["feedback_route"]["reasons"]}
+        t = time.perf_counter()
+        about = "; ".join(f"{v['label']}: {v['sentiment']}" for v in fb["aspects"].values())
+        answer = ("This reads like feedback (an opinion" + (f" about {about}" if about else "") + "), not a question "
+                  "about the catalog, so I did not search the catalog for it. Open it in the Feedback analyser to see "
+                  "the aspect and sentiment breakdown. If you meant a catalog question, please phrase it as a question.")
+        timings["answer"] = _ms(t)
+        timings["total"] = _ms(t_total)
+        trace["answer"] = {"status": "needs_clarification", "n_citations": 0, "answer_type": "feedback_routing"}
+        trace["timings_ms"] = timings
+        return {"question": question, "status": "needs_clarification", "answer": answer, "citations": [],
+                "suggestions": [], "routed_to": "feedback", "trace": trace}
 
     # ------------------------------------------------------------------
     def _ground(self, q, codes, unknown, field, flags, title_match, candidates, tokens,

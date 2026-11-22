@@ -9,6 +9,7 @@ STATUS_BADGE = {
     "insufficient_evidence": ("Not answerable from catalog", "warn"),
     "needs_clarification": ("Needs clarification", "info"),
     "invalid_input": ("Invalid input", "warn"),
+    "feedback": ("Feedback detected, not a catalog question", "info"),
 }
 DECISION_LABEL = {
     "exact_course_match": "Exact course match",
@@ -24,7 +25,9 @@ DECISION_LABEL = {
     "unknown_course_code": "Unknown course code",
     "field_not_in_records": "Field not in records",
     "invalid_input": "Invalid input",
+    "feedback_detected": "Feedback, routed to the Feedback analyser",
 }
+SENTIMENT_CLASS = {"positive": "pos", "negative": "neg", "neutral": "neu"}
 
 _MD_SPECIAL = re.compile(r"([\\`*_\[\]<>#|~$])")
 
@@ -59,8 +62,37 @@ CSS = """
 .rhu-stage b {display:block; color:#14213d; font-size:.8rem;}
 .rhu-stage span {color:#5a6878;}
 .rhu-cite {background:#fff; border:1px solid #d5dde5; border-radius:8px; padding:8px 10px; margin:6px 0; font-size:.88rem;}
+.rhu-clauses {line-height:2.1; font-size:.95rem; margin:4px 0 8px 0;}
+.rhu-clause {padding:3px 8px; border-radius:6px; margin-right:4px; border:1px solid transparent; color:#14213d;}
+.rhu-clause.pos {background:#d7f0ec; border-color:#9fd6cc;}
+.rhu-clause.neg {background:#f8dcdc; border-color:#e8a9a9;}
+.rhu-clause.neu {background:#eceff3; border-color:#cfd6de;}
+.rhu-clause.unclear {border-style:dashed; border-color:#8a96a3;}
+.rhu-clause small {color:#5a6878; font-size:.72rem; margin-left:4px;}
+.rhu-sent {display:inline-block; font-weight:700; padding:2px 12px; border-radius:999px; font-size:.95rem;}
+.rhu-sent.pos {background:#d7f0ec; color:#0b5e57;}
+.rhu-sent.neg {background:#f8dcdc; color:#8a1f1f;}
+.rhu-sent.neu {background:#eceff3; color:#3b4652;}
 </style>
 """
+
+
+def sentiment_chip(sentiment: str, unclear: bool = False) -> str:
+    label = f"{sentiment} (unclear)" if unclear else sentiment
+    return f'<span class="rhu-sent {SENTIMENT_CLASS.get(sentiment, "neu")}">{strip_html(label)}</span>'
+
+
+def clauses_html(analysis: dict) -> str:
+    """Each clause shaded by its polarity. Clause text is user input, so it is always HTML-escaped."""
+    parts = []
+    for s in analysis.get("sentences", []):
+        for c in s["clauses"]:
+            cls = SENTIMENT_CLASS.get(c["sentiment"], "neu") + (" unclear" if c["unclear"] else "")
+            tag = c["sentiment"] + (" ?" if c["unclear"] else "")
+            if c["aspects"]:
+                tag += " · " + ", ".join(c["aspects"])
+            parts.append(f'<span class="rhu-clause {cls}">{strip_html(c["text"])}<small>{strip_html(tag)}</small></span>')
+    return f'<div class="rhu-clauses">{" ".join(parts)}</div>'
 
 
 def badge_html(status: str) -> str:
@@ -86,8 +118,9 @@ def strip_html_stages(result: dict) -> str:
          t.get("tokenization", 0), "skip" if skipped else ""),
         ("3 · V3.1 hints", str(cls.get("category_hint") or "—"), t.get("classification", 0),
          "skip" if skipped else ("flag" if cls.get("review_needed") else "")),
-        ("4 · Retrieval", f"{len(ret['candidates'])} passages" + (f" + {n_struct} exact" if n_struct else ""),
-         t.get("retrieval", 0), "skip" if skipped else ""),
+        ("4 · Retrieval", ("skipped: feedback" if ret.get("skip_reason", "").startswith("feedback") else
+                           f"{len(ret['candidates'])} passages" + (f" + {n_struct} exact" if n_struct else "")),
+         t.get("retrieval", 0), "skip" if skipped or ret.get("skipped") else ""),
         ("5 · Evidence", DECISION_LABEL.get(gr["decision"], gr["decision"]), t.get("grounding", 0),
          "flag" if gr["decision"] in {"conflicting_records"} or result["status"] != "answered" else ""),
         ("6 · Answer", f"{result['status']} · {len(result['citations'])} cite(s)", t.get("answer", 0), ""),

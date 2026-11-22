@@ -50,19 +50,39 @@ Streamlit prints a local URL, normally http://localhost:8501.
 
 The app builds the index on first launch if `artifacts/` is missing, so `build_index.py` is optional but makes startup faster.
 
+### Optional: feedback sentiment / ABSA module
+
+This needs the git-ignored data in `inputs/feedback/raw/` (see `inputs/feedback/README.md`). Without it, the catalog
+chat works as before, and the Feedback analyser view says the models are missing.
+
+| Command | Purpose |
+|---|---|
+| `scripts/prepare_feedback_data.py` | Builds the training/test tables and `processed/data_card.json` (deterministic). |
+| `scripts/train_feedback_models.py [--variant full\|edurabsa_only\|labels_v1]` | Trains the models into `models/` (~75 s). The default `full` model is the one the app uses. |
+| `scripts/eval_feedback.py` | Scores all variants and writes `eval/feedback_results.md` (needs all three variants trained). |
+
+The tests for this module skip themselves when the data or models are absent.
+
 ## Using the app
 
 - Tap an example question or type into the chat box at the bottom.
 - Each answer shows a status badge (*Answered from catalog*, *Not answerable from catalog*, *Needs clarification*), the answer text and a **Sources** expander. Each source shows the page, a link to the official PDF at that page, the source ID and the verbatim excerpt.
 - **Show NLP steps** toggles the "How it works" inspector. It has a six-stage strip (input → tokens → V3.1 hints → retrieval → evidence → answer) with measured times, and tabs for each stage. Use the drop-down to inspect any earlier turn. Traces are stored, not recomputed.
 - **Clear chat** empties the session. Nothing is saved to disk.
+- **Catalog chat / Feedback analyser** at the top switches views. In the Feedback analyser, type or pick a piece of
+  student feedback and press **Analyse feedback**. You get the overall sentiment, shaded clauses, an aspect table and
+  a "How it works" panel with a model card. When you type an opinion (for example "My advisor is super helpful")
+  into the chat, it is not answered from the catalog; you get an **Open in Feedback analyser** button instead.
 
 ## Demo script (≈5 minutes)
 
 1. `How many credits is CCEE 566?` → 3 credits, three agreeing records (p. 155, 344, 347). In the inspector, open **Tokens** (`ccee`, `566`, entity `CCEE 566`), **Classifier** (courses / course_credits, *hints only*) and **Retrieval** (the exact-lookup table versus the TF-IDF bars, where teal is the cosine and orange is the boost).
 2. `What are the prerequisites for CCEE 566?` → three different catalog entries are shown with separate citations: p. 155 continued on p. 156 (Data Analytics minor), p. 344 (CCE program) and p. 347 (AI minor). Show **Evidence**, where each value is marked *in page text*.
 3. `What is my current GPA?` → declined, with no citation.
-4. Optional: `How do I appeal a grade?`. V3.1 tags this as `unanswerable_current_grade` and reconciles it to `gpa`, yet full-catalog retrieval still finds *Appeal of Course Grade* (p. 59). This is a good illustration of why the classifier is only a soft hint.
+4. Type `My advisor is super helpful` into the chat. It is flagged as feedback, not searched in the catalog.
+   Press **Open in Feedback analyser**, then try the example "Registration crashed again…" to show clause-level,
+   per-aspect sentiment and the detector scores.
+5. Optional: `How do I appeal a grade?`. V3.1 tags this as `unanswerable_current_grade` and reconciles it to `gpa`, yet full-catalog retrieval still finds *Appeal of Course Grade* (p. 59). This is a good illustration of why the classifier is only a soft hint.
 
 ## Troubleshooting
 

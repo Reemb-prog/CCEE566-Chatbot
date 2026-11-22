@@ -116,6 +116,100 @@ Limitations of this addition:
 - The fuzzy title match now runs on the longer, expanded text. The tokenization stage measured ~220 ms in the browser for a 5-rewrite question (previously ~20–50 ms).
 - "Spoken language" was implemented as informal written wording. Voice input is still out of scope.
 
+## Update 2026-11-21: feedback sentiment and ABSA module
+
+A separate module that analyses student opinions: overall sentiment, plus a sentiment for each of 12 RHU aspects
+(courses, instructors, registration, advising, admissions, tuition, student services, facilities, library, IT
+systems, careers, transportation). It never supplies catalog evidence. The plan, decisions and phases are in
+`docs/FEEDBACK_ABSA_PLAN.md`; the per-phase status is in `IMPLEMENTATION_STATUS.md`.
+
+**Data** (`inputs/feedback/`, git-ignored until licences are confirmed):
+
+- 6,420 public course/teacher/university reviews with star ratings. Only rating 3 is neutral (team decision D1).
+- EduRABSA: 1,043 human-annotated public reviews, split into sentences.
+- Claude-generated RHU sentences, used for the aspects EduRABSA lacks (D3).
+- The 40 RHU survey sentences. They are never used for training. They were sealed for the first evaluation, then
+  unsealed by the team to fix the errors found there.
+
+**Files created:**
+
+- Scripts: `scripts/prepare_feedback_data.py`, `scripts/train_feedback_models.py`, `scripts/eval_feedback.py`
+- Module: `src/rhu_chat/feedback.py` (the 8th module)
+- Tests: `tests/test_feedback_data.py`, `tests/test_feedback_models.py`, `tests/test_feedback.py`
+- Results: `eval/feedback_results.md`, `eval/feedback_results_sealed_v1.md`
+- Docs: `inputs/feedback/README.md`, `docs/FEEDBACK_ABSA_PLAN.md`
+
+**Files changed:** `app.py` (view switch, Feedback analyser view, routing button), `src/rhu_chat/pipeline.py`
+(feedback routing), `src/rhu_chat/ui.py`, `CLAUDE.md` (scope).
+
+**Models** (scikit-learn 1.8.0, train split only, no search beyond the teammate's configurations):
+
+- Review-level LinearSVC on word + character TF-IDF.
+- 12 one-vs-rest logistic-regression aspect detectors on word + character TF-IDF. Character features were chosen
+  over word-only features by train CV (mean F1 0.664 vs 0.604).
+- One shared clause-polarity logistic regression.
+- "Unclear" margins (D2), chosen on out-of-fold training scores. A positive/negative call below the margin is shown
+  as neutral (unclear).
+
+All scores are decision-function margins, never probabilities.
+
+**Commands and results** (2026-11-21, `.venv`):
+
+| Command | Result |
+|---|---|
+| `python scripts/prepare_feedback_data.py` | deterministic; data card written |
+| `python scripts/train_feedback_models.py` | refitting the teammate's Task A gives test macro-F1 **0.6187**, exactly as reported |
+| `python scripts/train_feedback_models.py --variant edurabsa_only` / `--variant labels_v1` | ablation models |
+| `python scripts/eval_feedback.py` | see the table below |
+| `python -m pytest -q` | **92 passed** |
+| `python scripts/smoke_app.py` | **PASS** |
+
+The Feedback analyser view was also checked in the browser.
+
+| Measure | Result |
+|---|---|
+| 40 RHU survey sentences, first sealed run: aspect + sentiment pair F1 | **0.488** (95% bootstrap 0.35–0.63). Without generated data: 0.164 |
+| Same 40 sentences after the F3b fixes (now a development number, not a test) | 0.512 |
+| EduRABSA test sentences: pair F1 | 0.572 (sealed run) / 0.562 (after F3b). Without generated data: 0.577 |
+| Review sentiment vs human-annotated polarity (208 reviews), macro-F1 | 0.579 with rating 3 = neutral, vs 0.515 with the teammate's mapping |
+| Review sentiment, public-review test split (star labels), macro-F1 | 0.57 with the unclear rule |
+
+**Three real examples** (exact model output from the Feedback analyser; sentences written for the demo, not survey data):
+
+1. *"Registration crashed again this morning, but my advisor helped me fix my schedule."*
+   - Split into 2 clauses.
+   - Detectors: registration (decision value 3.04), advising (4.64).
+   - Clause 1: neutral (margin 0.023). Clause 2: positive (margin 1.17).
+   - Result: **advising: positive, registration: neutral**. Overall: positive (margin 0.185, threshold 0.1385). 33 ms.
+   - "Crashed" was not read as negative, a known weakness on short RHU sentences.
+2. *"The library is quiet and the staff are friendly."*
+   - Detector: library (6.11). Polarity: positive (margin 1.94).
+   - Result: **library: positive**. Overall: positive (margin 0.994). 25 ms.
+3. *"Tuition keeps going up and the bus is always late."*
+   - Detectors: tuition_fees (3.76), transportation (2.21). Polarity: negative (margin 0.99).
+   - Result: **tuition_fees: negative, transportation: negative**.
+   - The review-level model says **positive** (margin 0.486). The two models disagree. The UI shows both, and the
+     aspect table is the more reliable reading for short RHU feedback.
+
+**Chat routing.** A chat message counts as feedback only when it has an opinion word ("terrible", "I hate",
+"was easy", …). It is not a question. It has no course code or requested field. It is not an instruction-override
+attempt. Such a message gets a "not a catalog question" reply (status `needs_clarification`, no citations, retrieval
+skipped) and an "Open in Feedback analyser" button. The model's own sentiment is shown only as supporting evidence.
+Using it to route sent searches like "library hours" to feedback, so it was removed from the decision.
+
+**Limitations of this addition:**
+
+- The only real RHU data is 40 sentences from 11 respondents, and it is no longer an independent test. A new set of
+  human sentences is needed for an honest RHU score. The two-annotator label check (F1b) is still pending.
+- Seven aspects are learned only from about 20 generated sentences each. IT systems is the weakest
+  (CV F1 0.29, train data).
+- Review-level labels come from star ratings (weak labels). Neutral is rare, so neutral mostly comes from the
+  unclear rule.
+- Routing is wording-based. A complaint such as "credits cost too much" stays on the catalog path because "credit" looks
+  like a credits lookup.
+- Still missing from the teammate: the raw S1 file, the original EduRABSA files with their conversion script, and
+  the licences. The data stays out of git until these arrive.
+
 ## Quick start
 
 ```bash
@@ -123,6 +217,9 @@ python -m venv .venv
 # Windows: .venv\Scripts\activate    macOS/Linux: source .venv/bin/activate
 python -m pip install -r requirements.txt
 python scripts/build_index.py
+# optional feedback module (needs inputs/feedback/raw/, see inputs/feedback/README.md)
+python scripts/prepare_feedback_data.py
+python scripts/train_feedback_models.py
 python -m pytest -q
 python -m streamlit run app.py
 ```

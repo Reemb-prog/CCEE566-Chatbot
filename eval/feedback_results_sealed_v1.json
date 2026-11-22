@@ -1,0 +1,969 @@
+{
+  "models": {
+    "full": "a9335d07b3e5",
+    "edurabsa_only": "a9335d07b3e5",
+    "labels_v1": "a9335d07b3e5"
+  },
+  "A_review_test": {
+    "full": {
+      "labels": "sentiment",
+      "model_only": {
+        "n": 982,
+        "macro_f1": 0.56,
+        "accuracy": 0.819,
+        "per_class": {
+          "positive": {
+            "p": 0.848,
+            "r": 0.919,
+            "f1": 0.882,
+            "support": 690
+          },
+          "negative": {
+            "p": 0.737,
+            "r": 0.639,
+            "f1": 0.684,
+            "support": 263
+          },
+          "neutral": {
+            "p": 0.333,
+            "r": 0.069,
+            "f1": 0.114,
+            "support": 29
+          }
+        },
+        "confusion_rows_gold_cols_pred": [
+          [
+            634,
+            54,
+            2
+          ],
+          [
+            93,
+            168,
+            2
+          ],
+          [
+            21,
+            6,
+            2
+          ]
+        ]
+      },
+      "with_unclear_rule": {
+        "n": 982,
+        "macro_f1": 0.57,
+        "accuracy": 0.789,
+        "per_class": {
+          "positive": {
+            "p": 0.873,
+            "r": 0.887,
+            "f1": 0.88,
+            "support": 690
+          },
+          "negative": {
+            "p": 0.77,
+            "r": 0.586,
+            "f1": 0.665,
+            "support": 263
+          },
+          "neutral": {
+            "p": 0.111,
+            "r": 0.31,
+            "f1": 0.164,
+            "support": 29
+          }
+        },
+        "confusion_rows_gold_cols_pred": [
+          [
+            612,
+            41,
+            37
+          ],
+          [
+            74,
+            154,
+            35
+          ],
+          [
+            15,
+            5,
+            9
+          ]
+        ]
+      },
+      "unclear_rate": 0.076
+    },
+    "labels_v1": {
+      "labels": "sentiment_v1",
+      "model_only": {
+        "n": 982,
+        "macro_f1": 0.619,
+        "accuracy": 0.73,
+        "per_class": {
+          "positive": {
+            "p": 0.788,
+            "r": 0.85,
+            "f1": 0.818,
+            "support": 594
+          },
+          "negative": {
+            "p": 0.711,
+            "r": 0.654,
+            "f1": 0.681,
+            "support": 263
+          },
+          "neutral": {
+            "p": 0.404,
+            "r": 0.32,
+            "f1": 0.357,
+            "support": 125
+          }
+        },
+        "confusion_rows_gold_cols_pred": [
+          [
+            505,
+            52,
+            37
+          ],
+          [
+            69,
+            172,
+            22
+          ],
+          [
+            67,
+            18,
+            40
+          ]
+        ]
+      },
+      "with_unclear_rule": {
+        "n": 982,
+        "macro_f1": 0.532,
+        "accuracy": 0.589,
+        "per_class": {
+          "positive": {
+            "p": 0.857,
+            "r": 0.658,
+            "f1": 0.745,
+            "support": 594
+          },
+          "negative": {
+            "p": 0.818,
+            "r": 0.411,
+            "f1": 0.547,
+            "support": 263
+          },
+          "neutral": {
+            "p": 0.201,
+            "r": 0.632,
+            "f1": 0.304,
+            "support": 125
+          }
+        },
+        "confusion_rows_gold_cols_pred": [
+          [
+            391,
+            15,
+            188
+          ],
+          [
+            28,
+            108,
+            127
+          ],
+          [
+            37,
+            9,
+            79
+          ]
+        ]
+      },
+      "unclear_rate": 0.3
+    }
+  },
+  "B_review_vs_annotated_polarity": {
+    "full": {
+      "model_only": {
+        "n": 208,
+        "macro_f1": 0.551,
+        "accuracy": 0.779,
+        "per_class": {
+          "positive": {
+            "p": 0.782,
+            "r": 0.961,
+            "f1": 0.862,
+            "support": 127
+          },
+          "negative": {
+            "p": 0.78,
+            "r": 0.629,
+            "f1": 0.696,
+            "support": 62
+          },
+          "neutral": {
+            "p": 0.5,
+            "r": 0.053,
+            "f1": 0.095,
+            "support": 19
+          }
+        },
+        "confusion_rows_gold_cols_pred": [
+          [
+            122,
+            4,
+            1
+          ],
+          [
+            23,
+            39,
+            0
+          ],
+          [
+            11,
+            7,
+            1
+          ]
+        ]
+      },
+      "with_unclear_rule": {
+        "n": 208,
+        "macro_f1": 0.579,
+        "accuracy": 0.755,
+        "per_class": {
+          "positive": {
+            "p": 0.804,
+            "r": 0.937,
+            "f1": 0.865,
+            "support": 127
+          },
+          "negative": {
+            "p": 0.773,
+            "r": 0.548,
+            "f1": 0.642,
+            "support": 62
+          },
+          "neutral": {
+            "p": 0.25,
+            "r": 0.211,
+            "f1": 0.229,
+            "support": 19
+          }
+        },
+        "confusion_rows_gold_cols_pred": [
+          [
+            119,
+            4,
+            4
+          ],
+          [
+            20,
+            34,
+            8
+          ],
+          [
+            9,
+            6,
+            4
+          ]
+        ]
+      }
+    },
+    "labels_v1": {
+      "model_only": {
+        "n": 208,
+        "macro_f1": 0.551,
+        "accuracy": 0.721,
+        "per_class": {
+          "positive": {
+            "p": 0.82,
+            "r": 0.858,
+            "f1": 0.838,
+            "support": 127
+          },
+          "negative": {
+            "p": 0.76,
+            "r": 0.613,
+            "f1": 0.679,
+            "support": 62
+          },
+          "neutral": {
+            "p": 0.12,
+            "r": 0.158,
+            "f1": 0.136,
+            "support": 19
+          }
+        },
+        "confusion_rows_gold_cols_pred": [
+          [
+            109,
+            5,
+            13
+          ],
+          [
+            15,
+            38,
+            9
+          ],
+          [
+            9,
+            7,
+            3
+          ]
+        ]
+      },
+      "with_unclear_rule": {
+        "n": 208,
+        "macro_f1": 0.515,
+        "accuracy": 0.596,
+        "per_class": {
+          "positive": {
+            "p": 0.898,
+            "r": 0.693,
+            "f1": 0.782,
+            "support": 127
+          },
+          "negative": {
+            "p": 0.759,
+            "r": 0.355,
+            "f1": 0.484,
+            "support": 62
+          },
+          "neutral": {
+            "p": 0.173,
+            "r": 0.737,
+            "f1": 0.28,
+            "support": 19
+          }
+        },
+        "confusion_rows_gold_cols_pred": [
+          [
+            88,
+            4,
+            35
+          ],
+          [
+            8,
+            22,
+            32
+          ],
+          [
+            2,
+            3,
+            14
+          ]
+        ]
+      }
+    }
+  },
+  "C_absa": {
+    "full": {
+      "rhu_human_test": {
+        "n_sentences": 40,
+        "gold_pairs": 40,
+        "pred_pairs": 42,
+        "pair_tp": 20,
+        "pair_precision": 0.476,
+        "pair_recall": 0.5,
+        "pair_f1": 0.488,
+        "aspect_tp": 29,
+        "aspect_precision": 0.69,
+        "aspect_recall": 0.725,
+        "aspect_f1": 0.707,
+        "polarity_acc_on_found_aspects": 0.69,
+        "n_found_aspects": 29,
+        "exact_set_match": 0.4,
+        "per_aspect": {
+          "admissions": {
+            "gold": 2,
+            "pred": 2,
+            "detected": 2,
+            "detected_and_polarity_right": 1
+          },
+          "advising": {
+            "gold": 7,
+            "pred": 4,
+            "detected": 4,
+            "detected_and_polarity_right": 2
+          },
+          "courses": {
+            "gold": 5,
+            "pred": 10,
+            "detected": 5,
+            "detected_and_polarity_right": 3
+          },
+          "facilities": {
+            "gold": 1,
+            "pred": 1,
+            "detected": 1,
+            "detected_and_polarity_right": 1
+          },
+          "instructors": {
+            "gold": 5,
+            "pred": 4,
+            "detected": 1,
+            "detected_and_polarity_right": 1
+          },
+          "it_systems": {
+            "gold": 0,
+            "pred": 1,
+            "detected": 0,
+            "detected_and_polarity_right": 0
+          },
+          "registration": {
+            "gold": 10,
+            "pred": 9,
+            "detected": 9,
+            "detected_and_polarity_right": 7
+          },
+          "student_services": {
+            "gold": 4,
+            "pred": 6,
+            "detected": 4,
+            "detected_and_polarity_right": 2
+          },
+          "transportation": {
+            "gold": 0,
+            "pred": 2,
+            "detected": 0,
+            "detected_and_polarity_right": 0
+          },
+          "tuition_fees": {
+            "gold": 6,
+            "pred": 3,
+            "detected": 3,
+            "detected_and_polarity_right": 3
+          }
+        },
+        "unclear_pairs": 5,
+        "pair_f1_95ci_bootstrap": [
+          0.349,
+          0.625
+        ]
+      },
+      "synthetic_dev": {
+        "n_sentences": 49,
+        "gold_pairs": 56,
+        "pred_pairs": 33,
+        "pair_tp": 13,
+        "pair_precision": 0.394,
+        "pair_recall": 0.232,
+        "pair_f1": 0.292,
+        "aspect_tp": 29,
+        "aspect_precision": 0.879,
+        "aspect_recall": 0.518,
+        "aspect_f1": 0.652,
+        "polarity_acc_on_found_aspects": 0.448,
+        "n_found_aspects": 29,
+        "exact_set_match": 0.184,
+        "per_aspect": {
+          "admissions": {
+            "gold": 5,
+            "pred": 2,
+            "detected": 2,
+            "detected_and_polarity_right": 2
+          },
+          "advising": {
+            "gold": 4,
+            "pred": 3,
+            "detected": 3,
+            "detected_and_polarity_right": 2
+          },
+          "career_services": {
+            "gold": 5,
+            "pred": 3,
+            "detected": 3,
+            "detected_and_polarity_right": 1
+          },
+          "courses": {
+            "gold": 5,
+            "pred": 4,
+            "detected": 2,
+            "detected_and_polarity_right": 1
+          },
+          "facilities": {
+            "gold": 5,
+            "pred": 4,
+            "detected": 2,
+            "detected_and_polarity_right": 0
+          },
+          "instructors": {
+            "gold": 5,
+            "pred": 4,
+            "detected": 4,
+            "detected_and_polarity_right": 1
+          },
+          "it_systems": {
+            "gold": 6,
+            "pred": 0,
+            "detected": 0,
+            "detected_and_polarity_right": 0
+          },
+          "library": {
+            "gold": 6,
+            "pred": 6,
+            "detected": 6,
+            "detected_and_polarity_right": 1
+          },
+          "registration": {
+            "gold": 4,
+            "pred": 1,
+            "detected": 1,
+            "detected_and_polarity_right": 1
+          },
+          "student_services": {
+            "gold": 3,
+            "pred": 2,
+            "detected": 2,
+            "detected_and_polarity_right": 0
+          },
+          "transportation": {
+            "gold": 4,
+            "pred": 1,
+            "detected": 1,
+            "detected_and_polarity_right": 1
+          },
+          "tuition_fees": {
+            "gold": 4,
+            "pred": 3,
+            "detected": 3,
+            "detected_and_polarity_right": 3
+          }
+        },
+        "unclear_pairs": 2
+      },
+      "edurabsa_test": {
+        "n_sentences": 660,
+        "gold_pairs": 626,
+        "pred_pairs": 618,
+        "pair_tp": 356,
+        "pair_precision": 0.576,
+        "pair_recall": 0.569,
+        "pair_f1": 0.572,
+        "aspect_tp": 514,
+        "aspect_precision": 0.832,
+        "aspect_recall": 0.821,
+        "aspect_f1": 0.826,
+        "polarity_acc_on_found_aspects": 0.693,
+        "n_found_aspects": 514,
+        "exact_set_match": 0.517,
+        "per_aspect": {
+          "courses": {
+            "gold": 312,
+            "pred": 316,
+            "detected": 255,
+            "detected_and_polarity_right": 151
+          },
+          "facilities": {
+            "gold": 23,
+            "pred": 17,
+            "detected": 15,
+            "detected_and_polarity_right": 14
+          },
+          "instructors": {
+            "gold": 283,
+            "pred": 280,
+            "detected": 241,
+            "detected_and_polarity_right": 189
+          },
+          "library": {
+            "gold": 0,
+            "pred": 1,
+            "detected": 0,
+            "detected_and_polarity_right": 0
+          },
+          "student_services": {
+            "gold": 8,
+            "pred": 4,
+            "detected": 3,
+            "detected_and_polarity_right": 2
+          }
+        },
+        "unclear_pairs": 78,
+        "pred_aspects_outside_edurabsa_scheme": 1
+      }
+    },
+    "edurabsa_only": {
+      "rhu_human_test": {
+        "n_sentences": 40,
+        "gold_pairs": 40,
+        "pred_pairs": 33,
+        "pair_tp": 6,
+        "pair_precision": 0.182,
+        "pair_recall": 0.15,
+        "pair_f1": 0.164,
+        "aspect_tp": 10,
+        "aspect_precision": 0.303,
+        "aspect_recall": 0.25,
+        "aspect_f1": 0.274,
+        "polarity_acc_on_found_aspects": 0.6,
+        "n_found_aspects": 10,
+        "exact_set_match": 0.15,
+        "per_aspect": {
+          "admissions": {
+            "gold": 2,
+            "pred": 0,
+            "detected": 0,
+            "detected_and_polarity_right": 0
+          },
+          "advising": {
+            "gold": 7,
+            "pred": 0,
+            "detected": 0,
+            "detected_and_polarity_right": 0
+          },
+          "courses": {
+            "gold": 5,
+            "pred": 19,
+            "detected": 5,
+            "detected_and_polarity_right": 3
+          },
+          "facilities": {
+            "gold": 1,
+            "pred": 1,
+            "detected": 1,
+            "detected_and_polarity_right": 1
+          },
+          "instructors": {
+            "gold": 5,
+            "pred": 7,
+            "detected": 0,
+            "detected_and_polarity_right": 0
+          },
+          "registration": {
+            "gold": 10,
+            "pred": 0,
+            "detected": 0,
+            "detected_and_polarity_right": 0
+          },
+          "student_services": {
+            "gold": 4,
+            "pred": 6,
+            "detected": 4,
+            "detected_and_polarity_right": 2
+          },
+          "tuition_fees": {
+            "gold": 6,
+            "pred": 0,
+            "detected": 0,
+            "detected_and_polarity_right": 0
+          }
+        },
+        "unclear_pairs": 7,
+        "pair_f1_95ci_bootstrap": [
+          0.054,
+          0.286
+        ]
+      },
+      "synthetic_dev": {
+        "n_sentences": 49,
+        "gold_pairs": 56,
+        "pred_pairs": 24,
+        "pair_tp": 4,
+        "pair_precision": 0.167,
+        "pair_recall": 0.071,
+        "pair_f1": 0.1,
+        "aspect_tp": 8,
+        "aspect_precision": 0.333,
+        "aspect_recall": 0.143,
+        "aspect_f1": 0.2,
+        "polarity_acc_on_found_aspects": 0.5,
+        "n_found_aspects": 8,
+        "exact_set_match": 0.041,
+        "per_aspect": {
+          "admissions": {
+            "gold": 5,
+            "pred": 0,
+            "detected": 0,
+            "detected_and_polarity_right": 0
+          },
+          "advising": {
+            "gold": 4,
+            "pred": 0,
+            "detected": 0,
+            "detected_and_polarity_right": 0
+          },
+          "career_services": {
+            "gold": 5,
+            "pred": 0,
+            "detected": 0,
+            "detected_and_polarity_right": 0
+          },
+          "courses": {
+            "gold": 5,
+            "pred": 13,
+            "detected": 3,
+            "detected_and_polarity_right": 2
+          },
+          "facilities": {
+            "gold": 5,
+            "pred": 3,
+            "detected": 1,
+            "detected_and_polarity_right": 0
+          },
+          "instructors": {
+            "gold": 5,
+            "pred": 7,
+            "detected": 3,
+            "detected_and_polarity_right": 1
+          },
+          "it_systems": {
+            "gold": 6,
+            "pred": 0,
+            "detected": 0,
+            "detected_and_polarity_right": 0
+          },
+          "library": {
+            "gold": 6,
+            "pred": 0,
+            "detected": 0,
+            "detected_and_polarity_right": 0
+          },
+          "registration": {
+            "gold": 4,
+            "pred": 0,
+            "detected": 0,
+            "detected_and_polarity_right": 0
+          },
+          "student_services": {
+            "gold": 3,
+            "pred": 1,
+            "detected": 1,
+            "detected_and_polarity_right": 1
+          },
+          "transportation": {
+            "gold": 4,
+            "pred": 0,
+            "detected": 0,
+            "detected_and_polarity_right": 0
+          },
+          "tuition_fees": {
+            "gold": 4,
+            "pred": 0,
+            "detected": 0,
+            "detected_and_polarity_right": 0
+          }
+        },
+        "unclear_pairs": 3
+      },
+      "edurabsa_test": {
+        "n_sentences": 660,
+        "gold_pairs": 626,
+        "pred_pairs": 622,
+        "pair_tp": 360,
+        "pair_precision": 0.579,
+        "pair_recall": 0.575,
+        "pair_f1": 0.577,
+        "aspect_tp": 513,
+        "aspect_precision": 0.825,
+        "aspect_recall": 0.819,
+        "aspect_f1": 0.822,
+        "polarity_acc_on_found_aspects": 0.702,
+        "n_found_aspects": 513,
+        "exact_set_match": 0.518,
+        "per_aspect": {
+          "courses": {
+            "gold": 312,
+            "pred": 315,
+            "detected": 253,
+            "detected_and_polarity_right": 154
+          },
+          "facilities": {
+            "gold": 23,
+            "pred": 20,
+            "detected": 16,
+            "detected_and_polarity_right": 12
+          },
+          "instructors": {
+            "gold": 283,
+            "pred": 284,
+            "detected": 242,
+            "detected_and_polarity_right": 193
+          },
+          "student_services": {
+            "gold": 8,
+            "pred": 3,
+            "detected": 2,
+            "detected_and_polarity_right": 1
+          }
+        },
+        "unclear_pairs": 48,
+        "pred_aspects_outside_edurabsa_scheme": 0
+      }
+    }
+  },
+  "D_polarity_gold_phrase": {
+    "full": {
+      "edurabsa_test": {
+        "n": 875,
+        "macro_f1": 0.657,
+        "accuracy": 0.769,
+        "per_class": {
+          "positive": {
+            "p": 0.896,
+            "r": 0.845,
+            "f1": 0.87,
+            "support": 529
+          },
+          "negative": {
+            "p": 0.656,
+            "r": 0.735,
+            "f1": 0.693,
+            "support": 260
+          },
+          "neutral": {
+            "p": 0.412,
+            "r": 0.407,
+            "f1": 0.409,
+            "support": 86
+          }
+        },
+        "confusion_rows_gold_cols_pred": [
+          [
+            447,
+            67,
+            15
+          ],
+          [
+            34,
+            191,
+            35
+          ],
+          [
+            18,
+            33,
+            35
+          ]
+        ]
+      },
+      "synthetic_dev": {
+        "n": 58,
+        "macro_f1": 0.637,
+        "accuracy": 0.638,
+        "per_class": {
+          "positive": {
+            "p": 0.818,
+            "r": 0.409,
+            "f1": 0.545,
+            "support": 22
+          },
+          "negative": {
+            "p": 0.933,
+            "r": 0.636,
+            "f1": 0.757,
+            "support": 22
+          },
+          "neutral": {
+            "p": 0.438,
+            "r": 1.0,
+            "f1": 0.609,
+            "support": 14
+          }
+        },
+        "confusion_rows_gold_cols_pred": [
+          [
+            9,
+            1,
+            12
+          ],
+          [
+            2,
+            14,
+            6
+          ],
+          [
+            0,
+            0,
+            14
+          ]
+        ]
+      }
+    },
+    "edurabsa_only": {
+      "edurabsa_test": {
+        "n": 875,
+        "macro_f1": 0.643,
+        "accuracy": 0.762,
+        "per_class": {
+          "positive": {
+            "p": 0.891,
+            "r": 0.849,
+            "f1": 0.869,
+            "support": 529
+          },
+          "negative": {
+            "p": 0.656,
+            "r": 0.712,
+            "f1": 0.683,
+            "support": 260
+          },
+          "neutral": {
+            "p": 0.371,
+            "r": 0.384,
+            "f1": 0.377,
+            "support": 86
+          }
+        },
+        "confusion_rows_gold_cols_pred": [
+          [
+            449,
+            65,
+            15
+          ],
+          [
+            34,
+            185,
+            41
+          ],
+          [
+            21,
+            32,
+            33
+          ]
+        ]
+      },
+      "synthetic_dev": {
+        "n": 58,
+        "macro_f1": 0.458,
+        "accuracy": 0.517,
+        "per_class": {
+          "positive": {
+            "p": 0.52,
+            "r": 0.591,
+            "f1": 0.553,
+            "support": 22
+          },
+          "negative": {
+            "p": 0.6,
+            "r": 0.682,
+            "f1": 0.638,
+            "support": 22
+          },
+          "neutral": {
+            "p": 0.25,
+            "r": 0.143,
+            "f1": 0.182,
+            "support": 14
+          }
+        },
+        "confusion_rows_gold_cols_pred": [
+          [
+            13,
+            5,
+            4
+          ],
+          [
+            5,
+            15,
+            2
+          ],
+          [
+            7,
+            5,
+            2
+          ]
+        ]
+      }
+    }
+  }
+}

@@ -11,3 +11,9 @@ inputs/catalog/
 inputs/reference_archive/
 inputs/knowledge/
 inputs/classifier/*.joblib
+# Feedback/ABSA data: public reviews with real instructor names, licences not yet confirmed.
+inputs/feedback/raw/
+inputs/feedback/processed/
+models/
+# Per-sentence survey responses (repository is public).
+eval/private/
