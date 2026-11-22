@@ -40,10 +40,11 @@ def test_questions_and_catalog_lookups_stay_on_catalog_path(text, codes, field):
     assert not feedback_route(text, None, codes, field)["is_feedback"]
 
 
-def test_model_view_alone_never_routes():
+def test_model_view_routes_full_sentences_only():
     fake = {"aspects": {"library": {"sentiment": "positive", "unclear": False}}}
-    r = feedback_route("library hours", fake)
-    assert not r["is_feedback"] and "supporting, not decisive" in r["reasons"][0]
+    assert not feedback_route("library hours", fake)["is_feedback"]               # search phrase
+    assert not feedback_route("library opening hours for students", fake)["is_feedback"]  # no verb
+    assert feedback_route("the library has new study rooms", fake)["is_feedback"]
 
 
 def test_clause_html_escapes_user_text():
@@ -113,3 +114,46 @@ def test_chat_offers_feedback_button_for_opinions():
     at.chat_input[0].set_value("My advisor is super helpful").run()
     assert not at.exception
     assert any(b.label == "Open in Feedback analyser" for b in at.button)
+
+
+# ------------------------------------------------------------------ UX fixes (2026-11-22)
+from src.rhu_chat.feedback import cue_polarity  # noqa: E402
+
+
+@pytest.mark.parametrize("text,codes,field,expected", [
+    ("Paying per credit here is way too expensive", (), "credits", True),     # field word + opinion -> feedback
+    ("late withdrawal from a course", (), None, False),               # search phrase stays catalog
+    ("late registration policy", (), None, False),
+    ("The bus is always late", (), None, True),
+])
+def test_routing_edge_cases(text, codes, field, expected):
+    assert feedback_route(text, None, codes, field)["is_feedback"] is expected
+
+
+def test_complaint_question_keeps_catalog_but_offers_analyser():
+    r = feedback_route("Why is registration always so terrible?", None)
+    assert r["is_feedback"] is False and r["also_feedback"] is True
+
+
+@pytest.mark.parametrize("text,pol", [
+    ("Registration crashed again", "negative"), ("not helpful at all", "negative"),
+    ("the staff are friendly", "positive"), ("easy but broken", None), ("the schedule", None),
+])
+def test_cue_polarity_with_negation(text, pol):
+    assert cue_polarity(text)[0] == pol
+
+
+@needs_model
+def test_overall_follows_aspects_and_cue_rule(pipeline):
+    r = pipeline.feedback.analyze("Tuition keeps going up and the bus is always late.")
+    assert {v["sentiment"] for v in r["aspects"].values()} == {"negative"}
+    assert r["overall"]["sentiment"] == "negative" and r["overall"]["source"] == "aspects"
+    c = pipeline.feedback.analyze("Registration crashed again this morning.")
+    assert c["aspects"]["registration"]["sentiment"] == "negative"
+    assert c["sentences"][0]["clauses"][0]["rule"]
+
+
+@needs_model
+def test_complaint_question_gets_offer_in_chat(pipeline):
+    r = pipeline.ask("Why is registration always so terrible?")
+    assert "routed_to" not in r and r.get("feedback_offer") is True

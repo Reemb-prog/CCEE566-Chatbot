@@ -81,7 +81,7 @@ def data():
 @needs_data
 def test_human_test_is_sealed_and_complete(data):
     h, s = data["human"], data["sent"]
-    assert len(h) == 40 and set(h.split) == {"rhu_human_test"}
+    assert len(h) in (39, 40) and set(h.split) == {"rhu_human_test"}  # 39 once rule R6 drops HF017
     assert not set(s.split) & {"rhu_human_test"}
     keys = set(h.text.map(prep.text_key))
     assert not s.text.map(prep.text_key).isin(keys).any()

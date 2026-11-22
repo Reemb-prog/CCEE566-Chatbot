@@ -160,6 +160,7 @@ class RHUChatPipeline:
         timings["classification"] = _ms(t)
 
         # 3b. feedback routing: an opinion is not a catalog question ----------
+        offer_feedback = False
         if self.feedback is not None:
             t = time.perf_counter()
             from .feedback import feedback_route
@@ -173,6 +174,7 @@ class RHUChatPipeline:
             timings["feedback_check"] = _ms(t)
             if route["is_feedback"]:
                 return self._feedback_reply(question, trace, timings, t_total, fb)
+            offer_feedback = bool(route.get("also_feedback"))
 
         # 4. retrieval over the FULL passage index -------------------------
         t = time.perf_counter()
@@ -217,8 +219,11 @@ class RHUChatPipeline:
         trace["answer"] = {"status": status, "n_citations": len(citations),
                            "answer_type": res["strategy"]}
         trace["timings_ms"] = timings
-        return {"question": question, "status": status, "answer": answer, "citations": citations,
-                "suggestions": res["suggestions"], "trace": trace}
+        out = {"question": question, "status": status, "answer": answer, "citations": citations,
+               "suggestions": res["suggestions"], "trace": trace}
+        if offer_feedback:  # a complaint phrased as a question: answer from the catalog, but offer the analyser
+            out["feedback_offer"] = True
+        return out
 
     def _feedback_reply(self, question: str, trace: dict, timings: dict, t_total: float, fb: dict) -> dict:
         """Opinion detected: do not search the catalog; point to the Feedback analyser instead."""

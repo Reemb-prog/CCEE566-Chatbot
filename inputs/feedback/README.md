@@ -17,6 +17,7 @@ Both folders are git-ignored until the licences are confirmed, because the publi
 | S3 | `RHU_ABSA_Annotations_Consolidated_Clean.csv` (Claude-generated RHU set + human rows) | team, 2026-11-17 | `2feef3292e4cbd6151e265b9d0e0842237d5747091d1253773bf7e083b7b591c` |
 | S3-patch | `RHU_synthetic_patch_f3.csv` (83 generated sentences written by Claude **after** seeing the F3 errors on S4) | Claude, 2026-11-21 | see `processed/data_card.json` |
 | S4 | `human_final.csv` (40 human survey sentences, 11 respondents) | team, 2026-11-17 | `846790f88d1d9a00f7240aa1172b46b8a6ff0924880fcfc9e225bb32a583116b` |
+| S4-v2 | `human_final_v2.csv` (S4 with team rules R1–R3 applied, HF017 excluded by R6; used by prepare) | Claude, 2026-11-22 | `2674f53dc31011196d175b5fe6c371c23e60808c5281068ab3580934ecd6ab5b` |
 
 ## Still missing (blocks full provenance, not F1)
 

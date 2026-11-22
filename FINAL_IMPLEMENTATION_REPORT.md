@@ -199,16 +199,34 @@ Using it to route sent searches like "library hours" to feedback, so it was remo
 
 **Limitations of this addition:**
 
-- The only real RHU data is 40 sentences from 11 respondents, and it is no longer an independent test. A new set of
-  human sentences is needed for an honest RHU score. The two-annotator label check (F1b) is still pending.
+- The only real RHU data is 40 sentences from 11 respondents (39 scored after rule R6), and it is no longer an
+  independent test. No new responses can be collected, so there is no independent RHU score. The label check was
+  done by Claude alone after the team agreed rules R1–R6 (no kappa; see `docs/FEEDBACK_LABEL_REVIEW.md`).
 - Seven aspects are learned only from about 20 generated sentences each. IT systems is the weakest
   (CV F1 0.29, train data).
 - Review-level labels come from star ratings (weak labels). Neutral is rare, so neutral mostly comes from the
   unclear rule.
-- Routing is wording-based. A complaint such as "credits cost too much" stays on the catalog path because "credit" looks
-  like a credits lookup.
+- Routing is still rule-based (wording cues plus the model on full sentences). Unusual phrasings can land on the
+  wrong path; the trace shows why.
 - Still missing from the teammate: the raw S1 file, the original EduRABSA files with their conversion script, and
   the licences. The data stays out of git until these arrive.
+
+**Update 2026-11-22: UX fixes** (no retraining; details and the team checklist in `docs/FEEDBACK_LABEL_REVIEW.md`)
+
+- **Overall label.** The overall label now follows the aspect results, so example 3 shows negative. Without
+  aspects it follows the clause sentiment, and only then the review model, whose view stays in the trace.
+- **Cue-word rule.** When the clause model says neutral, an unambiguous complaint/praise word decides (with
+  negation). Example 1's "crashed" now gives registration: negative.
+- **Routing:**
+  - "credit" plus opinion wording now counts as feedback.
+  - Complaint words such as broken, outdated or overpriced are now cues.
+  - Full sentences with clear model sentiment are routed. Short search phrases are not.
+  - A complaint phrased as a question gets the catalog answer plus an "Open in Feedback analyser" offer.
+- **Results:**
+  - Development pair F1 on the 40 survey sentences: 0.512 → 0.535. This is not an independent test.
+  - EduRABSA test: 0.562 → 0.585.
+  - Seed catalog questions: none routed to feedback.
+  - `pytest -q`: 104 passed.
 
 ## Quick start
 
@@ -223,3 +241,13 @@ python scripts/train_feedback_models.py
 python -m pytest -q
 python -m streamlit run app.py
 ```
+
+### Update 2026-11-22: label rules R1–R6 applied
+
+The team agreed rules R1–R6 in `docs/FEEDBACK_LABEL_REVIEW.md`, and Claude applied them as a single annotator (no
+kappa). Four labels changed (bus fees = tuition + transportation; crashing portal = registration + IT systems; rising
+fees = negative), and HF017 (a question) was dropped, so 39 sentences are now scored. The labels are in
+`inputs/feedback/raw/human_final_v2.csv` (git-ignored). Then prepare → train (3 variants) → eval were rerun, and
+`pytest -q` gave 104 passed. Human pair F1 went from 0.512 to 0.621 (CI 0.48–0.76). This is mainly a label effect,
+not model progress. No new responses can be collected, so there is no independent RHU score.
+

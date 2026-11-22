@@ -140,12 +140,20 @@ def render_feedback() -> None:
             st.info("Type or pick a piece of feedback and press **Analyse feedback**.")
             return
         if res.get("is_question"):
-            st.warning("This looks like a question. Catalog questions belong in the Catalog chat.")
+            if any(v["sentiment"] != "neutral" for v in res["aspects"].values()):
+                st.caption("Phrased as a question, analysed here as a complaint or opinion.")
+            else:
+                st.warning("This looks like a question. Catalog questions belong in the Catalog chat.")
         ov = res["overall"]
         st.markdown("**Overall sentiment** " + sentiment_chip(ov["sentiment"], ov["unclear"]), unsafe_allow_html=True)
-        st.caption(f"Review model says {ov['model_label']} with score margin {ov['margin']} "
-                   f"(threshold {res['thresholds']['review_margin']}; below it a positive/negative call is "
-                   "shown as neutral/unclear). Margins are not probabilities.")
+        if ov.get("source") in ("aspects", "clauses"):
+            st.caption(("Taken from the aspect results" if ov["source"] == "aspects" else "Taken from the clause sentiment (no aspect found)") + (" (positive and negative aspects, so mixed)" if ov.get("mixed") else "")
+                       + f". The whole-text review model said {ov['review_model_sentiment']} (score margin {ov['margin']}); "
+                       "it was trained on long public reviews, so the aspect results are preferred.")
+        else:
+            st.caption(f"Review model says {ov['model_label']} with score margin {ov['margin']} "
+                       f"(threshold {res['thresholds']['review_margin']}; below it a positive/negative call is "
+                       "shown as neutral/unclear). Margins are not probabilities.")
         st.markdown("**Clauses**")
         st.markdown(clauses_html(res), unsafe_allow_html=True)
         if res["aspects"]:
@@ -194,10 +202,13 @@ def render_feedback() -> None:
                             "becomes neutral/unclear (chosen on training data).")
                 st.dataframe(pd.DataFrame([{"clause": c["text"], "model": c["model_label"], "margin": c["margin"],
                                             "shown as": c["sentiment"] + (" (unclear)" if c["unclear"] else ""),
+                                            "cue rule": c.get("rule") or "—",
                                             "aspects": ", ".join(c["aspects"]) or "—"}
                                            for s in res["sentences"] for c in s["clauses"]]),
                              hide_index=True, width="stretch")
-                st.caption("Positive and negative for the same aspect in one message → neutral (mixed).")
+                st.caption("If the model says neutral but the clause has an unambiguous complaint/praise word "
+                           "(e.g. crashed, overpriced, not helpful), that word decides (cue rule). Positive and "
+                           "negative for the same aspect in one message → neutral (mixed).")
             with tabs[3]:
                 ov = res["overall"]
                 st.markdown("Review-level LinearSVC (word + character TF-IDF), trained on 6,420 public reviews "
@@ -280,7 +291,9 @@ with chat_col:
             routed = r.get("routed_to") == "feedback"
             st.markdown(badge_html("feedback" if routed else r["status"]), unsafe_allow_html=True)
             st.markdown(md_escape(r["answer"]))
-            if routed:
+            if routed or r.get("feedback_offer"):
+                if not routed:
+                    st.caption("This also sounds like a complaint. The Feedback analyser can break it down.")
                 st.button("Open in Feedback analyser", key=f"fb{i}", on_click=open_in_feedback,
                           args=(r["question"],))
             render_citations(r, key=f"t{i}")

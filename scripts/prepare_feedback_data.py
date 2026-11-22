@@ -58,6 +58,7 @@ FILES = {
     # Written by Claude on 2026-11-21 AFTER seeing the F3 errors on the 40 human sentences (team chose to unseal them).
     "S3-patch": "RHU_synthetic_patch_f3.csv",
     "S4": "human_final.csv",
+    "S4v2": "human_final_v2.csv",
 }
 _QUESTION_START = re.compile(r"^\s*(where|what|how|when|who|which|why|can|could|is|are|do|does|should)\b", re.I)
 
@@ -215,7 +216,11 @@ def build_synthetic(log: list, warn: list) -> tuple[pd.DataFrame, pd.DataFrame]:
 
 # ---------------------------------------------------------------- S4 human test
 def build_human_test(log: list) -> pd.DataFrame:
-    h = pd.read_csv(RAW / FILES["S4"], dtype=str, keep_default_na=False)
+    # human_final_v2.csv = team-agreed rules R1-R6 applied (docs/FEEDBACK_LABEL_REVIEW.md); v1 kept for the sealed result
+    src = RAW / FILES["S4v2"] if (RAW / FILES["S4v2"]).exists() else RAW / FILES["S4"]
+    h = pd.read_csv(src, dtype=str, keep_default_na=False)
+    excluded = h.label_note.str.startswith("EXCLUDE")
+    h = h[~excluded]
     rows = []
     for r in h.itertuples():
         raw_pairs = [tuple(p.split(":", 1)) for p in r.gold_pairs.split("|") if p]
@@ -230,8 +235,10 @@ def build_human_test(log: list) -> pd.DataFrame:
             "source": "human_survey", "is_synthetic": False, "split": "rhu_human_test",
         })
     df = pd.DataFrame(rows)
-    log.append(("S4 human sentences (sealed test)", len(df)))
-    log.append(("S4 labels revised by Claude (need 2-annotator check, F1b)", int(df.label_revised_by_claude.sum())))
+    log.append((f"S4 human sentences (unsealed dev set, {src.name})", len(df)))
+    log.append(("S4 dropped as not feedback (rule R6)", int(excluded.sum())))
+    log.append(("S4 labels changed by team rules R1-R3", int(df.label_note.str.startswith("RULE").sum())))
+    log.append(("S4 labels revised by Claude (single annotator, no 2-annotator check)", int(df.label_revised_by_claude.sum())))
     return df
 
 

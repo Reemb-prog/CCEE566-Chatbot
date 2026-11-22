@@ -156,7 +156,7 @@ The legacy synthetic rows and the Claude phenomena tags are used here as stress 
 |---|---|---|
 | F0 | Collect S1-raw/S2-raw/licence from the teammate; copy S1–S4 into `inputs/feedback/raw/`; update `CLAUDE.md` scope (ABSA now in scope as a separate module) | Files present with checksums; licence recorded in `inputs/feedback/README.md` |
 | F1 | `prepare_feedback_data.py` + data tests | Data tests pass; `data_card.json` written |
-| F1b | Re-label the 40 human sentences with 2 annotators (team) | Kappa reported, gold set frozen |
+| F1b | Re-label the 40 human sentences with 2 annotators (team) | Replaced 2026-11-22: team agreed rules R1–R6, Claude applied them as single annotator (no kappa); `human_final_v2.csv` |
 | F2 | `train_feedback_models.py` | M1 reproduces the teammate's Task A within about ±0.03 under the teammate's mapping (sanity check); all models saved with metrics |
 | F3 | `eval_feedback.py` + ablations | `eval/feedback_results.md` written, with the human-test error list |
 | F4 | `feedback.py` + tests | Unit tests pass |

@@ -237,7 +237,7 @@ def write_markdown(R: dict, human: pd.DataFrame, preds: dict) -> None:
           f"On edurabsa_test, predicted aspects outside the 5 EduRABSA aspects: "
           f"{C['full']['edurabsa_test']['pred_aspects_outside_edurabsa_scheme']}. They count as errors, even where "
           "they may be right (for example bus = transportation).", "",
-          "### Per aspect on the 40 human sentences (counts)", "",
+          f"### Per aspect on the {len(human)} human sentences (counts)", "",
           "| Aspect | gold | predicted (full) | detected (full) | detected + right polarity (full) | detected (edurabsa_only) |",
           "|---|---|---|---|---|---|"]
     pa, pe = h["per_aspect"], C["edurabsa_only"]["rhu_human_test"]["per_aspect"]
@@ -268,7 +268,7 @@ def write_markdown(R: dict, human: pd.DataFrame, preds: dict) -> None:
     PRIVATE.mkdir(parents=True, exist_ok=True)
     (PRIVATE / "feedback_human_errors.md").write_text("\n".join(E) + "\n", encoding="utf-8")
     L += ["## Limits", "",
-          "- 40 human sentences from 11 respondents: this shows behaviour, not a reliable accuracy. Per-aspect "
+          f"- {len(human)} human sentences from 11 respondents (labels v2: team rules R1-R6, HF017 dropped): this shows behaviour, not a reliable accuracy. Per-aspect "
           "counts are 1 to 8.",
           "- Review-level labels are star ratings (weak labels). With rating 3 = neutral there are only 29 neutral test reviews.",
           "- Most RHU aspects were learned from about 20 generated sentences each.",

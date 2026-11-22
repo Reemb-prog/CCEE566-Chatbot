@@ -83,29 +83,65 @@ _MILD_CUE = re.compile(
     r"\b(?:is|are|was|were|been|be|seems?|felt|feels?|gets?|got)\s+(?:(?:so|very|really|too|super|not|quite|"
     r"extremely|pretty|always|never|kind of|a bit|mostly|sometimes|usually|honestly|totally|getting)\s+)*(?:good|great|bad|poor|easy|hard|difficult|helpful|unhelpful|"
     r"friendly|mean|boring|smooth|simple|slow|fast|expensive|cheap|amazing|excellent|fine|ok|okay|confusing|"
-    r"clear|messy|organized|disorganized|supportive|available|unavailable|high|low|dead|quiet|loud|crowded)\b", re.I)
+    r"clear|messy|organized|disorganized|supportive|available|unavailable|high|low|dead|quiet|loud|crowded|late)\b", re.I)
+
+
+# Unambiguous polarity words. Used (a) as routing cues and (b) as a transparent fallback when the clause model says
+# neutral although the clause contains one of them ("Registration crashed again"). A negator just before flips it.
+CUE_NEGATIVE = re.compile(
+    r"\b(crash(?:es|ed|ing)?|nightmare|terrible|awful|horrible|worst|useless|rude|stressful|frustrat\w*|annoy\w*|"
+    r"broken|outdated|overpriced|expensive|slow|disconnect\w*|unfair|disappoint\w*|hate[sd]?|dirty|crowded|"
+    r"confusing|unhelpful|unavailable|unacceptable|mess(?:y)?|dead)\b", re.I)
+CUE_POSITIVE = re.compile(
+    r"\b(helpful|friendly|amazing|excellent|great|love[sd]?|smooth(?:ly)?|easy|clear|supportive|quiet|clean|"
+    r"fast|organi[sz]ed|welcoming|enjoy(?:ed)?|recommend(?:ed)?)\b", re.I)
+_NEGATOR = re.compile(r"\b(not|never|no|hardly|isn't|wasn't|aren't|weren't|don't|doesn't|didn't)\s+(?:\w+\s+)?$", re.I)
+MIN_WORDS_MODEL_ROUTE = 4  # below this, a message is treated as a search phrase ("library hours")
+_SENTENCE_HINT = re.compile(r"\b(is|are|was|were|keeps?|kept|never|always|again|still|did|does|didn't|doesn't|"
+                            r"won't|can't|couldn't|has|have|had|i|we|my|our)\b", re.I)
+
+
+def cue_polarity(text: str) -> tuple[str | None, str | None]:
+    """('negative'|'positive', matched phrase) from the cue lists, with simple negation; (None, None) if no cue."""
+    hits = []
+    for rx, pol in ((CUE_NEGATIVE, "negative"), (CUE_POSITIVE, "positive")):
+        for m in rx.finditer(text):
+            negated = bool(_NEGATOR.search(text[:m.start()]))
+            flip = {"negative": "positive", "positive": "negative"}[pol] if negated else pol
+            hits.append((m.start(), flip, ("not " if negated else "") + m.group(0)))
+    pols = {h[1] for h in hits}
+    if len(pols) != 1:  # none, or both directions -> no rule decision
+        return None, None
+    return hits[0][1], hits[0][2]
 
 
 def feedback_route(text: str, analysis: dict | None, course_codes=(), requested_field=None) -> dict:
     """Decide whether a chat message is feedback (an opinion) rather than a catalog question.
-    Questions, course codes and requested catalog fields always keep the catalog path."""
-    reasons = []
-    if is_question(text):
-        return {"is_feedback": False, "reasons": ["question form"]}
-    if course_codes or requested_field:
-        return {"is_feedback": False, "reasons": ["catalog lookup cue (course code or requested field)"]}
-    for rx, why in ((_STRONG_CUE, "opinion word"), (_MILD_CUE, "linking verb + evaluative word")):
+    Questions and course codes keep the catalog path; a requested field (e.g. "credit") only when there is no
+    opinion wording. A complaint phrased as a question keeps the catalog path but also offers the analyser."""
+    cues = []
+    for rx, why in ((_STRONG_CUE, "opinion word"), (_MILD_CUE, "linking verb + evaluative word"),
+                    (CUE_NEGATIVE, "complaint word")):
         m = rx.search(text)
         if m:
-            reasons.append(f"{why}: “{m.group(0)}”")
-    # The decision needs a wording cue. The model's view is shown as support only: on short search phrases
-    # ("library hours", "bus schedule") it can report a clear sentiment where there is no opinion.
-    is_fb = bool(reasons)
-    if analysis:
+            cues.append(f"{why}: “{m.group(0)}”")
+    if is_question(text):
+        strong = _STRONG_CUE.search(text) or CUE_NEGATIVE.search(text)
+        return {"is_feedback": False, "also_feedback": bool(strong),
+                "reasons": ["question form"] + (["also contains a complaint word, so the analyser is offered"]
+                                                if strong else [])}
+    if course_codes:
+        return {"is_feedback": False, "reasons": ["course code present: catalog lookup"]}
+    if requested_field and not cues:
+        return {"is_feedback": False, "reasons": [f"catalog field requested ({requested_field}) and no opinion wording"]}
+    reasons = list(cues)
+    # Model-only routing needs a full sentence (a verb or frequency word), so search phrases such as
+    # "late withdrawal from a course" stay catalog questions.
+    if not reasons and analysis and len(text.split()) >= MIN_WORDS_MODEL_ROUTE and _SENTENCE_HINT.search(text):
         polar = [a for a, v in analysis["aspects"].items() if v["sentiment"] != "neutral" and not v["unclear"]]
         if polar:
-            reasons.append("supporting, not decisive: feedback model sees clear sentiment about " + ", ".join(polar))
-    return {"is_feedback": is_fb, "reasons": reasons or ["no opinion cue"]}
+            reasons.append("feedback model: clear sentiment about " + ", ".join(polar) + " in a full sentence")
+    return {"is_feedback": bool(reasons), "reasons": reasons or ["no opinion cue"]}
 
 
 def clean_text(s: str) -> str:
@@ -186,10 +222,15 @@ class FeedbackAnalyzer:
     def _polarity(self, texts: list[str]) -> list[dict]:
         labels, margin = _top(self.clause_model, texts)
         out = []
-        for lab, m in zip(labels, margin):
+        for text, lab, m in zip(texts, labels, margin):
             unclear = lab != "neutral" and m < self.clause_margin
-            out.append({"model_label": lab, "sentiment": "neutral" if unclear else lab,
-                        "margin": round(float(m), 3), "unclear": bool(unclear)})
+            row = {"model_label": lab, "sentiment": "neutral" if unclear else lab,
+                   "margin": round(float(m), 3), "unclear": bool(unclear), "rule": None}
+            if row["sentiment"] == "neutral":  # model neutral or unclear: an unambiguous cue word decides
+                pol, phrase = cue_polarity(text)
+                if pol:
+                    row.update(sentiment=pol, unclear=False, rule=f"cue word “{phrase}”")
+            out.append(row)
         return out
 
     def analyze_sentence(self, sentence: str) -> dict:
@@ -234,6 +275,20 @@ class FeedbackAnalyzer:
                        "unclear": all(p["unclear"] for so in sent_out for p in so["pairs"] if p["aspect"] == a),
                        "trained_on_generated_only": a in self.meta.get("generated_only_aspects", [])}
                    for a, s in sorted(agg.items())}
+        # The shown overall follows the aspect results when there are any polar ones: the review model was trained on
+        # long public reviews and can contradict clear per-aspect findings on short RHU sentences.
+        polar = {v["sentiment"] for v in aspects.values() if v["sentiment"] != "neutral"}
+        overall["review_model_sentiment"] = overall["sentiment"]
+        if polar:
+            overall.update(sentiment=polar.pop() if len(polar) == 1 else "neutral", unclear=False,
+                           mixed=len({v["sentiment"] for v in aspects.values()} - {"neutral"}) > 1,
+                           source="aspects")
+        else:
+            clause_pol = {c["sentiment"] for s in sent_out for c in s["clauses"]} - {"neutral"}
+            if len(clause_pol) == 1:  # no aspect found, but the clauses agree on a clear polarity
+                overall.update(sentiment=clause_pol.pop(), unclear=False, mixed=False, source="clauses")
+            else:
+                overall.update(mixed=False, source="review model")
         t3 = time.perf_counter()
         return {
             "text": text, "original_text": original, "spelling_changes": spelling,
