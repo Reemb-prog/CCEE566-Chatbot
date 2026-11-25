@@ -85,7 +85,50 @@ def review_scores(y, pred) -> dict:
             "accuracy": round(float(np.mean(np.asarray(y) == np.asarray(pred))), 3),
             "per_class": {c: {"p": round(float(p[i]), 3), "r": round(float(r[i]), 3), "f1": round(float(f[i]), 3),
                               "support": int(n[i])} for i, c in enumerate(SENT)},
-            "confusion_rows_gold_cols_pred": confusion_matrix(y, pred, labels=SENT).tolist()}
+            "confusion_rows_gold_cols_pred": confusion_matrix(y, pred, labels=SENT).tolist(),
+            "top_confusions": top_confusions(y, pred)}
+
+
+def top_confusions(y, pred, k: int = 2) -> list[dict]:
+    """The k largest off-diagonal cells of the row-normalised confusion matrix (gold -> predicted)."""
+    cm = confusion_matrix(y, pred, labels=SENT, normalize="true")
+    np.fill_diagonal(cm, 0)
+    idx = np.argsort(cm.ravel())[::-1][:k]
+    return [{"gold": SENT[i], "pred": SENT[j], "share_of_gold": round(float(cm[i, j]), 3)}
+            for i, j in zip(*np.unravel_index(idx, cm.shape)) if cm[i, j] > 0]
+
+
+SHORTCUT_RE = r"(?i)\b(?:[1-5](?:\.\d)?\s*(?:/\s*5|out of 5|stars?)|rating:?\s*[1-5])\b"
+
+
+def baselines(review: pd.DataFrame, label_col: str = "sentiment") -> dict:
+    """Lab-3 style reference rows for the review task: two dummy classifiers and a tuned Naive Bayes.
+    Fit and tuned (alpha by group-aware 5-fold CV, macro-F1) on the train split only; scored once on S1 test.
+    These are comparisons only; the shipped M1 model is unchanged."""
+    from sklearn.dummy import DummyClassifier
+    from sklearn.feature_extraction.text import TfidfVectorizer
+    from sklearn.model_selection import GridSearchCV, StratifiedGroupKFold
+    from sklearn.naive_bayes import ComplementNB, MultinomialNB
+    from sklearn.pipeline import Pipeline
+    tr, te = review[review.split == "train"], review[review.split == "test"]
+    out = {}
+    for strat in ("most_frequent", "uniform"):
+        d = DummyClassifier(strategy=strat, random_state=SEED).fit(tr.text_clean, tr[label_col])
+        out[f"dummy_{strat}"] = review_scores(te[label_col], d.predict(te.text_clean))
+    cv = list(StratifiedGroupKFold(n_splits=5, shuffle=True, random_state=SEED)
+              .split(tr.text_clean, tr[label_col], tr.near_dup_group))
+    for name, nb in (("multinomial_nb", MultinomialNB()), ("complement_nb", ComplementNB())):
+        pipe = Pipeline([("f", TfidfVectorizer(ngram_range=(1, 2), min_df=2, sublinear_tf=True, strip_accents="unicode")),
+                         ("m", nb)])
+        g = GridSearchCV(pipe, {"m__alpha": [0.01, 0.1, 0.5, 1.0, 10.0]}, scoring="f1_macro", cv=cv, n_jobs=-1)
+        g.fit(tr.text_clean, tr[label_col])
+        r = review_scores(te[label_col], g.predict(te.text_clean))
+        r.update(best_alpha=g.best_params_["m__alpha"], cv_macro_f1=round(float(g.best_score_), 3))
+        out[name] = r
+    out["shortcut_check"] = {"pattern": SHORTCUT_RE,
+                             "train_texts_matching": int(tr.text_clean.str.contains(SHORTCUT_RE).sum()),
+                             "train_rows": int(len(tr))}
+    return out
 
 
 def review_predict(an: FeedbackAnalyzer, texts: list[str]) -> tuple[np.ndarray, np.ndarray]:
@@ -158,6 +201,9 @@ def main() -> int:
             pr = an[v].clause_model.predict(o.text.tolist())
             R["D_polarity_gold_phrase"][v][name] = review_scores(o.sentiment, pr)
 
+    # ---- F. baselines (dummy + tuned Naive Bayes) on the S1 review task, D1 labels
+    R["F_baselines"] = baselines(review)
+
     EVAL.mkdir(exist_ok=True)
     (EVAL / "feedback_results.json").write_text(json.dumps(R, indent=2), encoding="utf-8")
     write_markdown(R, human, preds_store)
@@ -210,6 +256,22 @@ def write_markdown(R: dict, human: pd.DataFrame, preds: dict) -> None:
         L.append(f"| {v} ({r['labels']}) | {r['model_only']['macro_f1']} | {r['with_unclear_rule']['macro_f1']} | "
                  f"{r['unclear_rate']} | {r['with_unclear_rule']['per_class']['neutral']['f1']} | "
                  f"{r['with_unclear_rule']['per_class']['neutral']['support']} |")
+    tc = A["full"]["with_unclear_rule"]["top_confusions"]
+    L += ["", "Most-confused pairs (full, with rule; share of the gold class): "
+          + "; ".join(f"{c['gold']} → {c['pred']} {c['share_of_gold']}" for c in tc) + "."]
+    F = R["F_baselines"]
+    L += ["", "### Baselines on the same S1 test split (D1 labels)", "",
+          "Fit on the train split only; Naive Bayes `alpha` chosen by group-aware 5-fold CV (macro-F1) from "
+          "0.01, 0.1, 0.5, 1, 10. Reference rows only: the shipped model is the LinearSVC above.", "",
+          "| Model | macro-F1 | accuracy | note |", "|---|---|---|---|",
+          f"| shipped M1 LinearSVC (model only) | {A['full']['model_only']['macro_f1']} | {A['full']['model_only']['accuracy']} | word+char TF-IDF |"]
+    for k in ("dummy_most_frequent", "dummy_uniform", "multinomial_nb", "complement_nb"):
+        r = F[k]
+        note = f"alpha {r['best_alpha']}, CV macro-F1 {r['cv_macro_f1']}" if "best_alpha" in r else "no text used"
+        L.append(f"| {k} | {r['macro_f1']} | {r['accuracy']} | {note} |")
+    s = F["shortcut_check"]
+    L += ["", f"Shortcut check: {s['train_texts_matching']} of {s['train_rows']} training reviews mention a star "
+          "rating in the text (the labels come from star ratings, so such text would leak the label)."]
     L += ["", "The two rows use different gold labels, so they cannot be compared with each other. Section B gives "
           "the common ruler.", "",
           "## B. Same models against human-annotated polarity (208 EduRABSA test reviews)", "",

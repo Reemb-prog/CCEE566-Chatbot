@@ -117,3 +117,10 @@ def test_analyze_trace_shape(bundle):
 def test_html_in_feedback_is_kept_as_plain_text(bundle):
     out = FeedbackAnalyzer(bundle).analyze("<script>alert(1)</script> registration was bad")
     assert "<script>" in out["text"]  # stored verbatim as data; the UI must escape it (F5)
+
+
+def test_top_polarity_terms_are_per_class_and_sensible(bundle):
+    terms = FeedbackAnalyzer(bundle).top_polarity_terms(10)
+    assert set(terms) == {"positive", "negative", "neutral"}
+    assert all(len(v) == 10 for v in terms.values())
+    assert {"great", "good"} & set(terms["positive"]) and {"worst", "useless"} & set(terms["negative"])

@@ -215,6 +215,13 @@ class FeedbackAnalyzer:
         import joblib
         return cls(joblib.load(path))
 
+    def top_polarity_terms(self, n: int = 10) -> dict[str, list[str]]:
+        """Highest-weighted n-grams per class of the clause polarity model (LR coef_, read-only inspection).
+        Weights are model coefficients, not probabilities; odd entries hint at spurious cues in training data."""
+        vec, clf = self.clause_model.named_steps["f"], self.clause_model.named_steps["m"]
+        names = np.asarray(vec.get_feature_names_out())
+        return {str(c): names[np.argsort(clf.coef_[i])[::-1][:n]].tolist() for i, c in enumerate(clf.classes_)}
+
     def split_clauses(self, sentence: str) -> list[str]:
         parts = [p.strip(" ,") for p in self.clause_re.split(sentence)]
         return [p for p in parts if p] or [sentence]

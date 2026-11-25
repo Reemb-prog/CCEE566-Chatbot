@@ -47,6 +47,18 @@
             6,
             2
           ]
+        ],
+        "top_confusions": [
+          {
+            "gold": "neutral",
+            "pred": "positive",
+            "share_of_gold": 0.724
+          },
+          {
+            "gold": "negative",
+            "pred": "positive",
+            "share_of_gold": 0.354
+          }
         ]
       },
       "with_unclear_rule": {
@@ -89,6 +101,18 @@
             5,
             9
           ]
+        ],
+        "top_confusions": [
+          {
+            "gold": "neutral",
+            "pred": "positive",
+            "share_of_gold": 0.517
+          },
+          {
+            "gold": "negative",
+            "pred": "positive",
+            "share_of_gold": 0.285
+          }
         ]
       },
       "unclear_rate": 0.074
@@ -135,6 +159,18 @@
             18,
             40
           ]
+        ],
+        "top_confusions": [
+          {
+            "gold": "neutral",
+            "pred": "positive",
+            "share_of_gold": 0.536
+          },
+          {
+            "gold": "negative",
+            "pred": "positive",
+            "share_of_gold": 0.262
+          }
         ]
       },
       "with_unclear_rule": {
@@ -177,6 +213,18 @@
             9,
             81
           ]
+        ],
+        "top_confusions": [
+          {
+            "gold": "negative",
+            "pred": "neutral",
+            "share_of_gold": 0.494
+          },
+          {
+            "gold": "positive",
+            "pred": "neutral",
+            "share_of_gold": 0.32
+          }
         ]
       },
       "unclear_rate": 0.308
@@ -224,6 +272,18 @@
             7,
             1
           ]
+        ],
+        "top_confusions": [
+          {
+            "gold": "neutral",
+            "pred": "positive",
+            "share_of_gold": 0.579
+          },
+          {
+            "gold": "negative",
+            "pred": "positive",
+            "share_of_gold": 0.371
+          }
         ]
       },
       "with_unclear_rule": {
@@ -266,6 +326,18 @@
             6,
             4
           ]
+        ],
+        "top_confusions": [
+          {
+            "gold": "neutral",
+            "pred": "positive",
+            "share_of_gold": 0.474
+          },
+          {
+            "gold": "negative",
+            "pred": "positive",
+            "share_of_gold": 0.323
+          }
         ]
       }
     },
@@ -310,6 +382,18 @@
             7,
             3
           ]
+        ],
+        "top_confusions": [
+          {
+            "gold": "neutral",
+            "pred": "positive",
+            "share_of_gold": 0.474
+          },
+          {
+            "gold": "neutral",
+            "pred": "negative",
+            "share_of_gold": 0.368
+          }
         ]
       },
       "with_unclear_rule": {
@@ -352,6 +436,18 @@
             2,
             15
           ]
+        ],
+        "top_confusions": [
+          {
+            "gold": "negative",
+            "pred": "neutral",
+            "share_of_gold": 0.516
+          },
+          {
+            "gold": "positive",
+            "pred": "neutral",
+            "share_of_gold": 0.276
+          }
         ]
       }
     }
@@ -846,6 +942,18 @@
             39,
             25
           ]
+        ],
+        "top_confusions": [
+          {
+            "gold": "neutral",
+            "pred": "negative",
+            "share_of_gold": 0.453
+          },
+          {
+            "gold": "neutral",
+            "pred": "positive",
+            "share_of_gold": 0.256
+          }
         ]
       },
       "synthetic_dev": {
@@ -888,6 +996,18 @@
             2,
             12
           ]
+        ],
+        "top_confusions": [
+          {
+            "gold": "positive",
+            "pred": "neutral",
+            "share_of_gold": 0.364
+          },
+          {
+            "gold": "negative",
+            "pred": "neutral",
+            "share_of_gold": 0.182
+          }
         ]
       }
     },
@@ -932,6 +1052,18 @@
             32,
             33
           ]
+        ],
+        "top_confusions": [
+          {
+            "gold": "neutral",
+            "pred": "negative",
+            "share_of_gold": 0.372
+          },
+          {
+            "gold": "neutral",
+            "pred": "positive",
+            "share_of_gold": 0.244
+          }
         ]
       },
       "synthetic_dev": {
@@ -974,8 +1106,247 @@
             5,
             2
           ]
+        ],
+        "top_confusions": [
+          {
+            "gold": "neutral",
+            "pred": "positive",
+            "share_of_gold": 0.5
+          },
+          {
+            "gold": "neutral",
+            "pred": "negative",
+            "share_of_gold": 0.357
+          }
         ]
       }
+    }
+  },
+  "F_baselines": {
+    "dummy_most_frequent": {
+      "n": 982,
+      "macro_f1": 0.275,
+      "accuracy": 0.703,
+      "per_class": {
+        "positive": {
+          "p": 0.703,
+          "r": 1.0,
+          "f1": 0.825,
+          "support": 690
+        },
+        "negative": {
+          "p": 0.0,
+          "r": 0.0,
+          "f1": 0.0,
+          "support": 263
+        },
+        "neutral": {
+          "p": 0.0,
+          "r": 0.0,
+          "f1": 0.0,
+          "support": 29
+        }
+      },
+      "confusion_rows_gold_cols_pred": [
+        [
+          690,
+          0,
+          0
+        ],
+        [
+          263,
+          0,
+          0
+        ],
+        [
+          29,
+          0,
+          0
+        ]
+      ],
+      "top_confusions": [
+        {
+          "gold": "neutral",
+          "pred": "positive",
+          "share_of_gold": 1.0
+        },
+        {
+          "gold": "negative",
+          "pred": "positive",
+          "share_of_gold": 1.0
+        }
+      ]
+    },
+    "dummy_uniform": {
+      "n": 982,
+      "macro_f1": 0.277,
+      "accuracy": 0.345,
+      "per_class": {
+        "positive": {
+          "p": 0.724,
+          "r": 0.342,
+          "f1": 0.465,
+          "support": 690
+        },
+        "negative": {
+          "p": 0.273,
+          "r": 0.354,
+          "f1": 0.308,
+          "support": 263
+        },
+        "neutral": {
+          "p": 0.032,
+          "r": 0.345,
+          "f1": 0.058,
+          "support": 29
+        }
+      },
+      "confusion_rows_gold_cols_pred": [
+        [
+          236,
+          234,
+          220
+        ],
+        [
+          85,
+          93,
+          85
+        ],
+        [
+          5,
+          14,
+          10
+        ]
+      ],
+      "top_confusions": [
+        {
+          "gold": "neutral",
+          "pred": "negative",
+          "share_of_gold": 0.483
+        },
+        {
+          "gold": "positive",
+          "pred": "negative",
+          "share_of_gold": 0.339
+        }
+      ]
+    },
+    "multinomial_nb": {
+      "n": 982,
+      "macro_f1": 0.505,
+      "accuracy": 0.818,
+      "per_class": {
+        "positive": {
+          "p": 0.81,
+          "r": 0.974,
+          "f1": 0.884,
+          "support": 690
+        },
+        "negative": {
+          "p": 0.862,
+          "r": 0.498,
+          "f1": 0.631,
+          "support": 263
+        },
+        "neutral": {
+          "p": 0.0,
+          "r": 0.0,
+          "f1": 0.0,
+          "support": 29
+        }
+      },
+      "confusion_rows_gold_cols_pred": [
+        [
+          672,
+          18,
+          0
+        ],
+        [
+          132,
+          131,
+          0
+        ],
+        [
+          26,
+          3,
+          0
+        ]
+      ],
+      "top_confusions": [
+        {
+          "gold": "neutral",
+          "pred": "positive",
+          "share_of_gold": 0.897
+        },
+        {
+          "gold": "negative",
+          "pred": "positive",
+          "share_of_gold": 0.502
+        }
+      ],
+      "best_alpha": 0.1,
+      "cv_macro_f1": 0.492
+    },
+    "complement_nb": {
+      "n": 982,
+      "macro_f1": 0.561,
+      "accuracy": 0.812,
+      "per_class": {
+        "positive": {
+          "p": 0.88,
+          "r": 0.868,
+          "f1": 0.874,
+          "support": 690
+        },
+        "negative": {
+          "p": 0.674,
+          "r": 0.745,
+          "f1": 0.708,
+          "support": 263
+        },
+        "neutral": {
+          "p": 0.2,
+          "r": 0.069,
+          "f1": 0.103,
+          "support": 29
+        }
+      },
+      "confusion_rows_gold_cols_pred": [
+        [
+          599,
+          86,
+          5
+        ],
+        [
+          64,
+          196,
+          3
+        ],
+        [
+          18,
+          9,
+          2
+        ]
+      ],
+      "top_confusions": [
+        {
+          "gold": "neutral",
+          "pred": "positive",
+          "share_of_gold": 0.621
+        },
+        {
+          "gold": "neutral",
+          "pred": "negative",
+          "share_of_gold": 0.31
+        }
+      ],
+      "best_alpha": 0.1,
+      "cv_macro_f1": 0.53
+    },
+    "shortcut_check": {
+      "pattern": "(?i)\\b(?:[1-5](?:\\.\\d)?\\s*(?:/\\s*5|out of 5|stars?)|rating:?\\s*[1-5])\\b",
+      "train_texts_matching": 3,
+      "train_rows": 5438
     }
   }
 }

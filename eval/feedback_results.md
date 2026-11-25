@@ -21,6 +21,22 @@ The human-test gain is within the bootstrap interval, so treat it as noise-level
 | full (sentiment) | 0.56 | 0.57 | 0.074 | 0.167 | 29 |
 | labels_v1 (sentiment_v1) | 0.619 | 0.529 | 0.308 | 0.308 | 125 |
 
+Most-confused pairs (full, with rule; share of the gold class): neutral → positive 0.517; negative → positive 0.285.
+
+### Baselines on the same S1 test split (D1 labels)
+
+Fit on the train split only; Naive Bayes `alpha` chosen by group-aware 5-fold CV (macro-F1) from 0.01, 0.1, 0.5, 1, 10. Reference rows only: the shipped model is the LinearSVC above.
+
+| Model | macro-F1 | accuracy | note |
+|---|---|---|---|
+| shipped M1 LinearSVC (model only) | 0.56 | 0.819 | word+char TF-IDF |
+| dummy_most_frequent | 0.275 | 0.703 | no text used |
+| dummy_uniform | 0.277 | 0.345 | no text used |
+| multinomial_nb | 0.505 | 0.818 | alpha 0.1, CV macro-F1 0.492 |
+| complement_nb | 0.561 | 0.812 | alpha 0.1, CV macro-F1 0.53 |
+
+Shortcut check: 3 of 5438 training reviews mention a star rating in the text (the labels come from star ratings, so such text would leak the label).
+
 The two rows use different gold labels, so they cannot be compared with each other. Section B gives the common ruler.
 
 ## B. Same models against human-annotated polarity (208 EduRABSA test reviews)

@@ -209,6 +209,11 @@ def render_feedback() -> None:
                 st.caption("If the model says neutral but the clause has an unambiguous complaint/praise word "
                            "(e.g. crashed, overpriced, not helpful), that word decides (cue rule). Positive and "
                            "negative for the same aspect in one message → neutral (mixed).")
+                with st.expander("Top cue words the polarity model learned"):
+                    terms = pipe.feedback.top_polarity_terms(10)
+                    st.dataframe(pd.DataFrame({c: t for c, t in terms.items()}), hide_index=True, width="stretch")
+                    st.caption("Highest logistic-regression weights per class (one-vs-rest). Weights, not "
+                               "probabilities; a word that makes no sense here points to a shortcut in the training data.")
             with tabs[3]:
                 ov = res["overall"]
                 st.markdown("Review-level LinearSVC (word + character TF-IDF), trained on 6,420 public reviews "
